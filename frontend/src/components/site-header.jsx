@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useLocation } from "react-router-dom";
 import { MapPin } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function SiteHeader() {
   const location = useLocation();
@@ -64,13 +65,18 @@ export function SiteHeader() {
         </Breadcrumb>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Operational Region Info Badge */}
         <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground bg-muted/40 px-3 py-1.5 rounded-full border border-border/60">
-          <MapPin className="w-3.5 h-3.5 text-amber-500" />
+          <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
           <span className="hidden md:inline">8 Wilayah: 1 HQ Jakarta &middot; 1 Kendari &middot; 6 Tambang</span>
-          <span className="md:hidden">8 Lokasi Tambang</span>
+          <span className="md:hidden">8 Wilayah Operasional</span>
         </div>
+
+        <Separator orientation="vertical" className="h-4" />
+
+        {/* Theme Dark / Light Mode Toggle */}
+        <ModeToggle />
       </div>
     </header>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ThemeProvider } from './components/theme-provider';
 import { AppLayout } from './components/layout/AppLayout';
 
 import { Login } from './pages/Login';
@@ -35,37 +36,39 @@ const ProtectedRoute = ({ children }) => {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
+    <ThemeProvider defaultTheme="dark" storageKey="nickel-fleet-theme">
+      <ToastProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<Login />} />
 
-            {/* Authenticated routes wrapped in AppLayout */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="bookings" element={<Bookings />} />
-              <Route path="approvals" element={<Approvals />} />
-              <Route path="vehicles" element={<Vehicles />} />
-              <Route path="drivers" element={<Drivers />} />
-              <Route path="fuel-logs" element={<FuelLogs />} />
-              <Route path="service-logs" element={<ServiceLogs />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="activity-logs" element={<ActivityLogs />} />
-            </Route>
+              {/* Authenticated routes wrapped in AppLayout */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="bookings" element={<Bookings />} />
+                <Route path="approvals" element={<Approvals />} />
+                <Route path="vehicles" element={<Vehicles />} />
+                <Route path="drivers" element={<Drivers />} />
+                <Route path="fuel-logs" element={<FuelLogs />} />
+                <Route path="service-logs" element={<ServiceLogs />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="activity-logs" element={<ActivityLogs />} />
+              </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </ToastProvider>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
