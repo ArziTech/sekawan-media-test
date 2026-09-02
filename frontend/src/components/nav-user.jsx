@@ -18,12 +18,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { ChevronsUpDown, LogOut, ShieldCheck, User as UserIcon } from "lucide-react";
+import { LogOut, ShieldCheck, User } from "lucide-react";
 
 export function NavUser() {
   const { user, logout } = useAuth();
-  const { isMobile } = useSidebar();
+  const { isMobile, state } = useSidebar();
 
   if (!user) return null;
 
@@ -44,60 +45,64 @@ export function NavUser() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="h-8 w-8 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-500/30">
-                <AvatarFallback className="rounded-lg font-bold text-xs">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-xs leading-tight">
-                <span className="truncate font-bold text-foreground">{user.name}</span>
-                <span className="truncate text-[11px] text-muted-foreground">
-                  {roleTitle}
-                </span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl p-1.5"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
+        <div className="flex items-center justify-between gap-1.5 p-1.5 rounded-xl border border-border/80 bg-sidebar-accent/40 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent">
+          {/* User Details */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 px-1">
+            <Avatar className="h-8 w-8 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-500/30 shrink-0">
+              <AvatarFallback className="rounded-lg font-bold text-xs">{initials}</AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-xs leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
+              <span className="truncate font-bold text-foreground">{user.name}</span>
+              <span className="truncate text-[11px] text-muted-foreground">
+                {roleTitle}
+              </span>
+            </div>
+          </div>
+
+          {/* Dedicated Logout Action Button */}
+          <Button
+            onClick={logout}
+            variant="ghost"
+            size="icon-sm"
+            title="Keluar / Logout"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/15 rounded-lg shrink-0 group-data-[collapsible=icon]:hidden"
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2.5 px-2 py-2 text-left text-xs">
-                <Avatar className="h-8 w-8 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-500/30">
-                  <AvatarFallback className="rounded-lg font-bold text-xs">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-xs leading-tight">
-                  <span className="truncate font-bold text-foreground">{user.name}</span>
-                  <span className="truncate text-[11px] text-muted-foreground">
-                    {user.email}
-                  </span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <div className="px-2 py-1.5 text-[11px] text-muted-foreground flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span className="truncate font-medium">{user.position || roleTitle}</span>
-              </div>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={logout}
-              className="text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer font-semibold text-xs"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Keluar (Log Out)
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <LogOut className="w-4 h-4" />
+          </Button>
+
+          {/* Dropdown fallback when sidebar is collapsed to icon only */}
+          <div className="hidden group-data-[collapsible=icon]:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton size="lg" className="h-8 w-8 p-0">
+                  <Avatar className="h-8 w-8 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                    <AvatarFallback className="rounded-lg font-bold text-xs">{initials}</AvatarFallback>
+                  </Avatar>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56 rounded-xl p-1.5"
+                side={isMobile ? "bottom" : "right"}
+                align="end"
+                sideOffset={6}
+              >
+                <DropdownMenuLabel className="p-2 font-normal">
+                  <p className="font-bold text-xs text-foreground truncate">{user.name}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                  <p className="text-[10px] text-amber-500 font-medium mt-0.5">{roleTitle}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="text-destructive focus:text-destructive focus:bg-destructive/15 cursor-pointer font-bold text-xs gap-2 py-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Keluar / Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </SidebarMenuItem>
     </SidebarMenu>
   );
