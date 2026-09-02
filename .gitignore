@@ -1,0 +1,22 @@
+# User specified ignores
+docs/
+plans/
+archive/
+archived/
+AGENTS.md
+
+# Environment and secrets
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+
+# Dependencies
+/vendor/
+/node_modules/
+/public/build
+/public/hot
+
+# System files
+.DS_Store
+Thumbs.db
