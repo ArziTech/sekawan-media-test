@@ -28,8 +28,9 @@ import {
 import { Link } from 'react-router-dom';
 import api from '@/services/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableHeader,
@@ -277,15 +278,25 @@ export const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Button asChild variant="default" size="sm" className="h-9 px-4 font-bold text-xs">
-            <Link to="/bookings">
-              <CalendarCheck className="w-3.5 h-3.5 mr-1.5" />
-              Kelola Pemesanan
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="sm" className="h-9 px-3 text-xs">
-            <Link to="/reports">Lihat Laporan</Link>
-          </Button>
+          <Link
+            to="/bookings"
+            className={cn(
+              buttonVariants({ variant: "default", size: "sm" }),
+              "h-9 px-4 font-bold text-xs gap-1.5 inline-flex items-center"
+            )}
+          >
+            <CalendarCheck className="w-4 h-4" />
+            <span>Kelola Pemesanan</span>
+          </Link>
+          <Link
+            to="/reports"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "h-9 px-3.5 text-xs font-semibold inline-flex items-center"
+            )}
+          >
+            Lihat Laporan
+          </Link>
         </div>
       </div>
 
@@ -440,11 +451,15 @@ export const Dashboard = () => {
               </CardTitle>
               <CardDescription className="text-xs">Daftar transaksi pemesanan terbaru</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-xs text-amber-500 hover:text-amber-400">
-              <Link to="/bookings">
-                Lihat Semua <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Link>
-            </Button>
+            <Link
+              to="/bookings"
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "text-xs text-amber-500 hover:text-amber-400 inline-flex items-center gap-1"
+              )}
+            >
+              Lihat Semua <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -490,11 +505,15 @@ export const Dashboard = () => {
               </CardTitle>
               <CardDescription className="text-xs">Armada dalam antrean perawatan</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-xs text-amber-500 hover:text-amber-400">
-              <Link to="/service-logs">
-                Lihat Semua <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Link>
-            </Button>
+            <Link
+              to="/service-logs"
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "text-xs text-amber-500 hover:text-amber-400 inline-flex items-center gap-1"
+              )}
+            >
+              Lihat Semua <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
