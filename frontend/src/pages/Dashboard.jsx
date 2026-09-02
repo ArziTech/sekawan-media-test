@@ -156,9 +156,8 @@ export const Dashboard = () => {
           fleetDist.cargo_rented || 0,
         ],
         backgroundColor: ['#3b82f6', '#06b6d4', '#f59e0b', '#f43f5e'],
-        borderColor: '#18181b',
-        borderWidth: 2,
-        hoverOffset: 4,
+        borderWidth: 0,
+        hoverOffset: 6,
       },
     ],
   };
@@ -166,14 +165,18 @@ export const Dashboard = () => {
   const fleetChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: '65%',
     plugins: {
       legend: {
         position: 'bottom',
         labels: {
-          color: '#d4d4d8',
-          padding: 12,
+          color: '#a1a1aa',
+          padding: 14,
           font: { size: 11 },
           usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8,
         },
       },
       tooltip: {
