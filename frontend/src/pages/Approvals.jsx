@@ -238,12 +238,12 @@ export const Approvals = () => {
                       </div>
                     </CardContent>
 
-                    <div className="p-4 pt-0 flex items-center gap-2 border-t border-border/60 mt-2">
+                    <div className="p-4 pt-3 flex items-center gap-2.5 border-t border-border/80">
                       <Button
                         onClick={() => handleOpenActionModal(b, 'approve')}
                         variant="emerald"
                         size="sm"
-                        className="flex-1 font-bold text-xs gap-1.5"
+                        className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         Setujui (Approve)
@@ -252,7 +252,7 @@ export const Approvals = () => {
                         onClick={() => handleOpenActionModal(b, 'reject')}
                         variant="destructive"
                         size="sm"
-                        className="flex-1 font-bold text-xs gap-1.5"
+                        className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
                       >
                         <XCircle className="w-4 h-4" />
                         Tolak (Reject)

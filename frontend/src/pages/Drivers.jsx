@@ -217,12 +217,12 @@ export const Drivers = () => {
               </CardContent>
 
               {isAdmin && (
-                <div className="p-4 pt-0 flex items-center justify-end gap-1 border-t border-border/60 mt-1">
-                  <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(d)} className="h-8 px-2 text-xs">
+                <div className="p-4 pt-3 flex items-center justify-end gap-2 border-t border-border/80">
+                  <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(d)} className="h-8 px-2.5 text-xs">
                     <Edit2 className="w-3.5 h-3.5 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="h-8 px-2 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10">
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="h-8 px-2.5 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10">
                     <Trash2 className="w-3.5 h-3.5 mr-1" />
                     Hapus
                   </Button>
