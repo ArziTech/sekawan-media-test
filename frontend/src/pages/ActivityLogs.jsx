@@ -1,8 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Search, Filter, Eye, Shield, Terminal } from 'lucide-react';
-import api from '../services/api';
-import { useToast } from '../context/ToastContext';
-import { Modal } from '../components/common/Modal';
+import { Activity, Search, Filter, Eye, Terminal } from 'lucide-react';
+import api from '@/services/api';
+import { useToast } from '@/context/ToastContext';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const ActivityLogs = () => {
   const toast = useToast();
@@ -46,183 +65,168 @@ export const ActivityLogs = () => {
     setIsModalOpen(true);
   };
 
-  const getModuleBadgeColor = (mod) => {
-    switch (mod) {
-      case 'bookings':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'approvals':
-        return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      case 'vehicles':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'drivers':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-      case 'fuel':
-        return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-      case 'service':
-        return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
-      case 'auth':
-        return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-      default:
-        return 'bg-slate-800 text-slate-300';
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Activity className="w-6 h-6 text-amber-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Activity className="w-5 h-5 text-amber-500" />
             Log Aktivitas Aplikasi (Audit Trail)
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Rekam jejak audit keamanan dan pencatatan riwayat setiap proses operasional pada sistem.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Rekam jejak audit keamanan dan transparansi setiap aksi pengguna pada sistem armada.
           </p>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && fetchLogs()}
-            placeholder="Cari deskripsi log, nama user, alamat IP..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500"
-          />
-        </div>
+      <Card>
+        <CardContent className="p-3 flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchLogs()}
+              placeholder="Cari aksi log, nama user, alamat IP..."
+              className="pl-9 h-9 text-xs"
+            />
+          </div>
 
-        <select
-          value={moduleFilter}
-          onChange={(e) => setModuleFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
-        >
-          <option value="">Semua Modul</option>
-          <option value="bookings">Pemesanan (Bookings)</option>
-          <option value="approvals">Persetujuan (Approvals)</option>
-          <option value="vehicles">Armada Kendaraan</option>
-          <option value="drivers">Driver</option>
-          <option value="fuel">Konsumsi BBM</option>
-          <option value="service">Servis Perawatan</option>
-          <option value="auth">Autentikasi (Auth)</option>
-        </select>
-      </div>
+          <select
+            value={moduleFilter}
+            onChange={(e) => setModuleFilter(e.target.value)}
+            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="">Semua Modul</option>
+            <option value="bookings">Pemesanan (Bookings)</option>
+            <option value="approvals">Persetujuan (Approvals)</option>
+            <option value="vehicles">Armada Kendaraan</option>
+            <option value="drivers">Driver</option>
+            <option value="fuel">Konsumsi BBM</option>
+            <option value="service">Servis Perawatan</option>
+            <option value="auth">Autentikasi (Auth)</option>
+          </select>
+        </CardContent>
+      </Card>
 
       {/* Table */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              <tr>
-                <th className="py-4 px-4">Waktu (Timestamp)</th>
-                <th className="py-4 px-4">Pengguna (User)</th>
-                <th className="py-4 px-4">Modul</th>
-                <th className="py-4 px-4">Aksi / Deskripsi Aktivitas</th>
-                <th className="py-4 px-4">Alamat IP</th>
-                <th className="py-4 px-4 text-center">Payload</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Waktu (Timestamp)</TableHead>
+                <TableHead>Pengguna</TableHead>
+                <TableHead>Modul</TableHead>
+                <TableHead>Aksi & Deskripsi</TableHead>
+                <TableHead>Alamat IP</TableHead>
+                <TableHead className="text-right">Payload</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr>
-                  <td colSpan="6" className="py-12 text-center text-slate-500">
-                    Memuat log aktivitas...
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                    Memuat audit trail...
+                  </TableCell>
+                </TableRow>
               ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="py-12 text-center text-slate-500">
-                    Belum ada log yang sesuai filter.
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                    Belum ada data log aktivitas.
+                  </TableCell>
+                </TableRow>
               ) : (
                 logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-800/40">
-                    <td className="py-4 px-4 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                  <TableRow key={log.id}>
+                    <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
                       {new Date(log.created_at).toLocaleString('id-ID')}
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="font-bold text-white">{log.user?.name || 'Sistem'}</p>
-                      <p className="text-[10px] text-slate-400">{log.user?.email}</p>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${getModuleBadgeColor(log.module)}`}>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <p className="font-semibold text-foreground">{log.user?.name || 'Sistem'}</p>
+                      <p className="text-[10px] text-muted-foreground">{log.user?.email}</p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="uppercase text-[10px] font-bold">
                         {log.module}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-slate-200">
-                      <span className="font-mono text-amber-400 text-[11px] block">{log.action}</span>
-                      <p className="text-xs text-slate-300 mt-0.5">{log.description}</p>
-                    </td>
-                    <td className="py-4 px-4 font-mono text-slate-400 text-[11px]">
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <span className="font-mono text-amber-500 font-semibold block text-[11px]">{log.action}</span>
+                      <p className="text-muted-foreground mt-0.5">{log.description}</p>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
                       {log.ip_address || '-'}
-                    </td>
-                    <td className="py-4 px-4 text-center">
+                    </TableCell>
+                    <TableCell className="text-right">
                       {log.payload ? (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleOpenDetail(log)}
-                          className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 text-[11px] font-semibold transition-colors flex items-center gap-1 mx-auto"
+                          className="h-7 text-xs font-semibold text-amber-500 hover:text-amber-400 gap-1"
                         >
-                          <Eye className="w-3 h-3" />
+                          <Eye className="w-3.5 h-3.5" />
                           JSON
-                        </button>
+                        </Button>
                       ) : (
-                        <span className="text-slate-600">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Modal Detail JSON Payload */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={`Detail Audit Log #${selectedLog?.id}`}
-        maxWidth="max-w-xl"
-      >
-        {selectedLog && (
-          <div className="space-y-4 text-xs">
-            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <p className="text-slate-400">
-                Aksi: <strong className="text-amber-400 font-mono">{selectedLog.action}</strong>
-              </p>
-              <p className="text-slate-400">
-                Deskripsi: <span className="text-white">{selectedLog.description}</span>
-              </p>
-              <p className="text-slate-400">
-                Waktu: <span className="text-slate-200 font-mono">{new Date(selectedLog.created_at).toLocaleString('id-ID')}</span>
-              </p>
-            </div>
+      {/* Dialog: Detail JSON Payload */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Detail Audit Log #{selectedLog?.id}</DialogTitle>
+            <DialogDescription>
+              {selectedLog?.action} &middot; {selectedLog?.created_at && new Date(selectedLog.created_at).toLocaleString('id-ID')}
+            </DialogDescription>
+          </DialogHeader>
 
-            <div>
-              <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5 text-amber-400" />
-                Raw Payload Data (JSON):
-              </label>
-              <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-amber-300 font-mono text-[11px] overflow-x-auto max-h-72">
-                {JSON.stringify(selectedLog.payload, null, 2)}
-              </pre>
-            </div>
+          {selectedLog && (
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-lg bg-muted/40 border border-border/60 space-y-1">
+                <p className="text-muted-foreground">
+                  User: <strong className="text-foreground">{selectedLog.user?.name || 'Sistem'}</strong> ({selectedLog.user?.email})
+                </p>
+                <p className="text-muted-foreground">
+                  Deskripsi: <span className="text-foreground">{selectedLog.description}</span>
+                </p>
+                <p className="text-muted-foreground font-mono">
+                  IP: {selectedLog.ip_address} &middot; Agent: {selectedLog.user_agent?.substring(0, 50)}...
+                </p>
+              </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-800">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs"
-              >
-                Tutup
-              </button>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground flex items-center gap-1.5">
+                  <Terminal className="w-3.5 h-3.5 text-amber-500" />
+                  Payload JSON:
+                </label>
+                <pre className="p-3.5 rounded-lg bg-zinc-950 border border-zinc-800 text-amber-400 font-mono text-[11px] overflow-x-auto max-h-64">
+                  {JSON.stringify(selectedLog.payload, null, 2)}
+                </pre>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
+                  Tutup
+                </Button>
+              </DialogFooter>
             </div>
-          </div>
-        )}
-      </Modal>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

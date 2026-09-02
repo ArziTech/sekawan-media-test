@@ -10,9 +10,21 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import api from '../services/api';
-import { useToast } from '../context/ToastContext';
-import { BookingStatusBadge } from '../components/common/StatusBadge';
+import api from '@/services/api';
+import { useToast } from '@/context/ToastContext';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import { BookingStatusBadge } from '@/components/common/StatusBadge';
 
 export const Reports = () => {
   const toast = useToast();
@@ -23,7 +35,7 @@ export const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
-  // Filter states
+  // Filters
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [status, setStatus] = useState('');
@@ -157,197 +169,204 @@ export const Reports = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <FileSpreadsheet className="w-6 h-6 text-amber-400" />
-            Laporan Periodik Pemesanan & Monitoring Kendaraan
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <FileSpreadsheet className="w-5 h-5 text-amber-500" />
+            Laporan Periodik & Ekspor Data Excel
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Filter multi-dimensi riwayat pemakaian kendaraan tambang dan ekspor langsung ke format Microsoft Excel (.xlsx).
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Filter riwayat pemakaian kendaraan tambang dan ekspor langsung ke Microsoft Excel (.xlsx).
           </p>
         </div>
 
-        <button
+        <Button
           onClick={handleExportExcelBackend}
           disabled={downloading}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer disabled:opacity-50"
+          variant="emerald"
+          size="sm"
+          className="font-bold text-xs gap-1.5 shadow-sm"
         >
           <Download className="w-4 h-4" />
-          {downloading ? 'Menyiapkan File Excel...' : 'Export ke Excel (.xlsx)'}
-        </button>
+          {downloading ? 'Menyiapkan File...' : 'Export ke Excel (.xlsx)'}
+        </Button>
       </div>
 
-      {/* Summary KPI Highlights */}
+      {/* KPI Highlights */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <TrendingUp className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Total Pemesanan Terfilter</p>
-            <p className="text-2xl font-black text-white mt-0.5">{summary.total_bookings} trip</p>
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Total Pemesanan Terfilter
+            </CardTitle>
+            <TrendingUp className="w-4 h-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {summary.total_bookings} <span className="text-xs font-normal text-muted-foreground">trip</span>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <Fuel className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Total Konsumsi Bahan Bakar</p>
-            <p className="text-2xl font-black text-white mt-0.5">
-              {Number(summary.total_fuel_liters).toLocaleString('id-ID', { minimumFractionDigits: 2 })} L
-            </p>
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Total Konsumsi BBM
+            </CardTitle>
+            <Fuel className="w-4 h-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {Number(summary.total_fuel_liters).toLocaleString('id-ID', { minimumFractionDigits: 2 })}{' '}
+              <span className="text-xs font-normal text-muted-foreground">Liter</span>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            <Truck className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Total Biaya Operasional BBM</p>
-            <p className="text-xl font-black text-white mt-0.5">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Total Biaya BBM
+            </CardTitle>
+            <Truck className="w-4 h-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-foreground">
               Rp {Number(summary.total_fuel_cost).toLocaleString('id-ID')}
-            </p>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filter Parameters */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <Filter className="w-4 h-4 text-amber-400" />
-            Parameter Filter Laporan:
-          </span>
-          <button
-            onClick={handleResetFilters}
-            className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-foreground">
+            <Filter className="w-3.5 h-3.5 text-amber-500" />
+            Parameter Filter Laporan
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={handleResetFilters} className="h-7 text-[11px] text-muted-foreground hover:text-foreground">
+            <RotateCcw className="w-3 h-3 mr-1" />
             Reset Filter
-          </button>
-        </div>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
+            <div className="space-y-1">
+              <label className="text-muted-foreground text-[11px]">Dari Tanggal</label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
-          <div>
-            <label className="block text-slate-400 mb-1">Dari Tanggal</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-amber-500 focus:outline-none"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="text-muted-foreground text-[11px]">Sampai Tanggal</label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1">Sampai Tanggal</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-amber-500 focus:outline-none"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="text-muted-foreground text-[11px]">Wilayah / Tambang</label>
+              <select
+                value={regionId}
+                onChange={(e) => setRegionId(e.target.value)}
+                className="w-full h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+              >
+                <option value="">Semua Lokasi</option>
+                {regions.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1">Wilayah / Tambang</label>
-            <select
-              value={regionId}
-              onChange={(e) => setRegionId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-amber-500 focus:outline-none"
-            >
-              <option value="">Semua Lokasi</option>
-              {regions.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="space-y-1">
+              <label className="text-muted-foreground text-[11px]">Status Booking</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+              >
+                <option value="">Semua Status</option>
+                <option value="pending_level_1">Menunggu L1</option>
+                <option value="pending_level_2">Menunggu L2</option>
+                <option value="approved">Disetujui</option>
+                <option value="in_use">Sedang Berjalan</option>
+                <option value="completed">Selesai</option>
+                <option value="rejected">Ditolak</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1">Status Booking</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-amber-500 focus:outline-none"
-            >
-              <option value="">Semua Status</option>
-              <option value="pending_level_1">Menunggu L1</option>
-              <option value="pending_level_2">Menunggu L2</option>
-              <option value="approved">Disetujui</option>
-              <option value="in_use">Sedang Berjalan</option>
-              <option value="completed">Selesai</option>
-              <option value="rejected">Ditolak</option>
-            </select>
-          </div>
+            <div className="space-y-1">
+              <label className="text-muted-foreground text-[11px]">Tipe Kendaraan</label>
+              <select
+                value={vehicleType}
+                onChange={(e) => setVehicleType(e.target.value)}
+                className="w-full h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+              >
+                <option value="">Semua Tipe</option>
+                <option value="passenger">Angkutan Orang</option>
+                <option value="cargo">Angkutan Barang</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1">Tipe Kendaraan</label>
-            <select
-              value={vehicleType}
-              onChange={(e) => setVehicleType(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-amber-500 focus:outline-none"
-            >
-              <option value="">Semua Tipe</option>
-              <option value="passenger">Angkutan Orang</option>
-              <option value="cargo">Angkutan Barang</option>
-            </select>
+            <div className="flex items-end">
+              <Button onClick={fetchReports} size="sm" className="w-full h-8 font-semibold text-xs">
+                Terapkan
+              </Button>
+            </div>
           </div>
-
-          <div className="flex items-end">
-            <button
-              onClick={fetchReports}
-              className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs"
-            >
-              Terapkan Filter
-            </button>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Live Preview Table */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-            Pratinjau Data Laporan ({bookings.length} baris data)
-          </h3>
-          <span className="text-[11px] text-slate-400">Siap diekspor ke Microsoft Excel</span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              <tr>
-                <th className="py-3 px-3">No</th>
-                <th className="py-3 px-3">Kode Booking</th>
-                <th className="py-3 px-3">Pemohon</th>
-                <th className="py-3 px-3">Asal &rarr; Tujuan</th>
-                <th className="py-3 px-3">Armada & Supir</th>
-                <th className="py-3 px-3">Tipe / Kepemilikan</th>
-                <th className="py-3 px-3">Status</th>
-                <th className="py-3 px-3">Approver L1</th>
-                <th className="py-3 px-3">Approver L2</th>
-                <th className="py-3 px-3 text-right">BBM (Liter)</th>
-                <th className="py-3 px-3 text-right">Biaya BBM</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div>
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-foreground">
+              Pratinjau Data Laporan ({bookings.length} baris)
+            </CardTitle>
+            <CardDescription className="text-xs">Data siap diekspor ke format Excel</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">No</TableHead>
+                <TableHead>Kode</TableHead>
+                <TableHead>Pemohon</TableHead>
+                <TableHead>Rute</TableHead>
+                <TableHead>Armada</TableHead>
+                <TableHead>Tipe</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Approver L1</TableHead>
+                <TableHead>Approver L2</TableHead>
+                <TableHead className="text-right">BBM</TableHead>
+                <TableHead className="text-right">Biaya BBM</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr>
-                  <td colSpan="11" className="py-12 text-center text-slate-500">
-                    Memuat pratinjau...
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={11} className="py-12 text-center text-muted-foreground text-xs">
+                    Memuat data laporan...
+                  </TableCell>
+                </TableRow>
               ) : bookings.length === 0 ? (
-                <tr>
-                  <td colSpan="11" className="py-12 text-center text-slate-500">
+                <TableRow>
+                  <TableCell colSpan={11} className="py-12 text-center text-muted-foreground text-xs">
                     Tidak ada data yang cocok dengan filter.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 bookings.map((b, idx) => {
                   const l1 = b.approvals?.find((a) => a.approval_level === 1);
@@ -356,54 +375,52 @@ export const Reports = () => {
                   const cost = b.fuel_logs?.reduce((acc, f) => acc + parseFloat(f.total_cost || 0), 0) || 0;
 
                   return (
-                    <tr key={b.id} className="hover:bg-slate-800/40">
-                      <td className="py-3 px-3 text-slate-400">{idx + 1}</td>
-                      <td className="py-3 px-3 font-mono font-bold text-amber-400">{b.booking_code}</td>
-                      <td className="py-3 px-3">
-                        <p className="font-bold text-white">{b.requester_name}</p>
-                        <p className="text-[10px] text-slate-400">{b.requester_department}</p>
-                      </td>
-                      <td className="py-3 px-3">
-                        <p className="text-white">{b.origin_region?.name}</p>
-                        <p className="text-[10px] text-amber-400">&rarr; {b.destination_region?.name}</p>
-                      </td>
-                      <td className="py-3 px-3">
-                        <p className="font-semibold text-white">{b.vehicle?.name}</p>
-                        <p className="text-[10px] text-slate-400">Driver: {b.driver?.name}</p>
-                      </td>
-                      <td className="py-3 px-3">
-                        <p className="text-white">
-                          {b.vehicle?.type === 'passenger' ? 'Orang' : 'Barang'}
+                    <TableRow key={b.id}>
+                      <TableCell className="text-muted-foreground text-xs">{idx + 1}</TableCell>
+                      <TableCell className="font-mono font-bold text-amber-500 text-xs">{b.booking_code}</TableCell>
+                      <TableCell className="text-xs">
+                        <p className="font-semibold text-foreground">{b.requester_name}</p>
+                        <p className="text-[10px] text-muted-foreground">{b.requester_department}</p>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <p className="text-foreground">{b.origin_region?.name}</p>
+                        <p className="text-[10px] text-amber-500">&rarr; {b.destination_region?.name}</p>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <p className="font-medium text-foreground">{b.vehicle?.name}</p>
+                        <p className="text-[10px] text-muted-foreground">Driver: {b.driver?.name}</p>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <p className="text-foreground">{b.vehicle?.type === 'passenger' ? 'Orang' : 'Barang'}</p>
+                        <p className={`text-[10px] ${b.vehicle?.ownership_type === 'owned' ? 'text-emerald-500' : 'text-cyan-500'}`}>
+                          {b.vehicle?.ownership_type === 'owned' ? 'Milik' : 'Sewa'}
                         </p>
-                        <p className={`text-[10px] ${b.vehicle?.ownership_type === 'owned' ? 'text-emerald-400' : 'text-cyan-400'}`}>
-                          {b.vehicle?.ownership_type === 'owned' ? 'Milik Sendiri' : 'Sewa'}
-                        </p>
-                      </td>
-                      <td className="py-3 px-3">
+                      </TableCell>
+                      <TableCell>
                         <BookingStatusBadge status={b.status} />
-                      </td>
-                      <td className="py-3 px-3">
-                        <p className="text-white font-medium">{l1?.approver?.name || '-'}</p>
-                        <span className="text-[10px] text-emerald-400 uppercase font-semibold">{l1?.status}</span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <p className="text-white font-medium">{l2?.approver?.name || '-'}</p>
-                        <span className="text-[10px] text-emerald-400 uppercase font-semibold">{l2?.status}</span>
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-emerald-400 font-bold">
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <p className="font-medium text-foreground">{l1?.approver?.name || '-'}</p>
+                        <span className="text-[10px] text-emerald-500 font-semibold uppercase">{l1?.status}</span>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <p className="font-medium text-foreground">{l2?.approver?.name || '-'}</p>
+                        <span className="text-[10px] text-emerald-500 font-semibold uppercase">{l2?.status}</span>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-emerald-500 font-semibold text-xs">
                         {liters > 0 ? `${Number(liters).toFixed(2)} L` : '-'}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-white font-bold">
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-semibold text-foreground text-xs">
                         {cost > 0 ? `Rp ${Number(cost).toLocaleString('id-ID')}` : '-'}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

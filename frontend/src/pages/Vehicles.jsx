@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, Plus, Search, Filter, Wrench, Fuel, MapPin, Building2, Edit2, Trash2 } from 'lucide-react';
-import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import { VehicleStatusBadge } from '../components/common/StatusBadge';
-import { Modal } from '../components/common/Modal';
+import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { VehicleStatusBadge } from '@/components/common/StatusBadge';
 
 export const Vehicles = () => {
   const { isAdmin } = useAuth();
@@ -113,24 +124,20 @@ export const Vehicles = () => {
     try {
       if (editingVehicle) {
         const res = await api.put(`/vehicles/${editingVehicle.id}`, formData);
-        if (res.data.success) {
-          toast.success(res.data.message);
-        }
+        if (res.data.success) toast.success(res.data.message);
       } else {
         const res = await api.post('/vehicles', formData);
-        if (res.data.success) {
-          toast.success(res.data.message);
-        }
+        if (res.data.success) toast.success(res.data.message);
       }
       setIsModalOpen(false);
       fetchVehicles();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menyimpan kendaraan.');
+      toast.error(err.response?.data?.message || 'Gagal menyimpan data kendaraan.');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus kendaraan ini?')) return;
+    if (!window.confirm('Hapus unit kendaraan ini dari armada?')) return;
     try {
       const res = await api.delete(`/vehicles/${id}`);
       if (res.data.success) {
@@ -145,310 +152,284 @@ export const Vehicles = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Truck className="w-6 h-6 text-amber-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Truck className="w-5 h-5 text-amber-500" />
             Inventaris Armada Kendaraan
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Monitoring kendaraan angkutan orang & barang, status kepemilikan (milik sendiri & sewa), dan jadwal servis.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manajemen unit angkutan orang & barang, status kepemilikan (milik sendiri & sewa), serta pelacakan odometer.
           </p>
         </div>
 
         {isAdmin && (
-          <button
-            onClick={handleOpenAdd}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 self-start sm:self-auto"
-          >
+          <Button onClick={handleOpenAdd} size="sm" className="font-bold text-xs gap-1.5 shadow-sm">
             <Plus className="w-4 h-4" />
             Tambah Kendaraan
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && fetchVehicles()}
-            placeholder="Cari nama unit, plat nomor..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500"
-          />
-        </div>
+      <Card>
+        <CardContent className="p-3 flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchVehicles()}
+              placeholder="Cari nama unit, plat nomor..."
+              className="pl-9 h-9 text-xs"
+            />
+          </div>
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
-        >
-          <option value="">Semua Tipe</option>
-          <option value="passenger">Angkutan Orang</option>
-          <option value="cargo">Angkutan Barang</option>
-        </select>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="">Semua Tipe</option>
+            <option value="passenger">Angkutan Orang</option>
+            <option value="cargo">Angkutan Barang</option>
+          </select>
 
-        <select
-          value={ownershipFilter}
-          onChange={(e) => setOwnershipFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
-        >
-          <option value="">Semua Kepemilikan</option>
-          <option value="owned">Milik Perusahaan</option>
-          <option value="rented">Sewa (Rental)</option>
-        </select>
+          <select
+            value={ownershipFilter}
+            onChange={(e) => setOwnershipFilter(e.target.value)}
+            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="">Semua Kepemilikan</option>
+            <option value="owned">Milik Sendiri</option>
+            <option value="rented">Sewa (Rental)</option>
+          </select>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
-        >
-          <option value="">Semua Status</option>
-          <option value="available">Tersedia</option>
-          <option value="in_use">Digunakan</option>
-          <option value="in_service">Dalam Servis</option>
-        </select>
-      </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="">Semua Status</option>
+            <option value="available">Tersedia</option>
+            <option value="in_use">Digunakan</option>
+            <option value="in_service">Dalam Servis</option>
+          </select>
+        </CardContent>
+      </Card>
 
       {/* Vehicles Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading ? (
-          <div className="col-span-full py-16 text-center text-slate-500">
-            <div className="inline-block w-8 h-8 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mb-2" />
-            <p className="text-xs">Memuat armada...</p>
+          <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
+            <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
+            <p>Memuat armada...</p>
           </div>
         ) : vehicles.length === 0 ? (
-          <div className="col-span-full py-16 text-center text-slate-500">
+          <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
             Tidak ada armada yang sesuai filter.
           </div>
         ) : (
           vehicles.map((v) => (
-            <div
-              key={v.id}
-              className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-xl flex flex-col justify-between transition-all"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-amber-400">
+            <Card key={v.id} className="flex flex-col justify-between">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-muted border border-border/80 text-foreground">
                     {v.license_plate}
                   </span>
                   <VehicleStatusBadge status={v.status} />
                 </div>
 
-                <h3 className="text-sm font-bold text-white mb-2">{v.name}</h3>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">{v.name}</h3>
+                  <p className="text-[11px] text-muted-foreground">{v.region?.name}</p>
+                </div>
 
-                <div className="space-y-2 text-xs text-slate-300">
+                <div className="space-y-1.5 text-xs text-muted-foreground pt-1 border-t border-border/60">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Tipe Armada:</span>
-                    <span className="font-semibold text-white">
+                    <span>Tipe:</span>
+                    <span className="font-medium text-foreground">
                       {v.type === 'passenger' ? 'Angkutan Orang' : 'Angkutan Barang'}
                     </span>
                   </div>
-
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Kepemilikan:</span>
-                    <span
-                      className={`font-semibold ${
-                        v.ownership_type === 'owned' ? 'text-emerald-400' : 'text-cyan-400'
-                      }`}
-                    >
-                      {v.ownership_type === 'owned'
-                        ? 'Milik Perusahaan'
-                        : `Sewa (${v.rental_company?.name || 'Vendor'})`}
+                    <span>Kepemilikan:</span>
+                    <span className={`font-medium ${v.ownership_type === 'owned' ? 'text-emerald-500' : 'text-cyan-500'}`}>
+                      {v.ownership_type === 'owned' ? 'Milik Perusahaan' : `Sewa (${v.rental_company?.name || 'Vendor'})`}
                     </span>
                   </div>
-
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Lokasi Penempatan:</span>
-                    <span className="font-medium text-slate-200">{v.region?.name}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Odometer Terkini:</span>
-                    <span className="font-mono font-bold text-white">
+                    <span>Odometer:</span>
+                    <span className="font-mono font-semibold text-foreground">
                       {Number(v.current_odometer).toLocaleString('id-ID')} km
                     </span>
                   </div>
-
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Bahan Bakar:</span>
-                    <span className="text-amber-400 font-medium">{v.fuel_type}</span>
+                    <span>Bahan Bakar:</span>
+                    <span className="text-amber-500 font-medium">{v.fuel_type}</span>
                   </div>
                 </div>
-              </div>
+              </CardContent>
 
               {isAdmin && (
-                <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-slate-800">
-                  <button
-                    onClick={() => handleOpenEdit(v)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(v.id)}
-                    className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                <div className="p-4 pt-0 flex items-center justify-end gap-1.5 border-t border-border/60 mt-2">
+                  <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(v)} className="h-8 px-2 text-xs">
+                    <Edit2 className="w-3.5 h-3.5 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} className="h-8 px-2 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10">
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Hapus
+                  </Button>
                 </div>
               )}
-            </div>
+            </Card>
           ))
         )}
       </div>
 
-      {/* Modal Add/Edit Vehicle */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingVehicle ? 'Edit Data Kendaraan' : 'Tambah Armada Kendaraan Baru'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Nama / Tipe Kendaraan *</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Contoh: Toyota Hilux 4x4"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Nomor Polisi (Plat) *</label>
-              <input
-                type="text"
-                required
-                value={formData.license_plate}
-                onChange={(e) => setFormData({ ...formData, license_plate: e.target.value })}
-                placeholder="Contoh: B 9101 NKL"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
-            </div>
-          </div>
+      {/* Dialog: Add/Edit Vehicle */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingVehicle ? 'Edit Data Kendaraan' : 'Tambah Armada Kendaraan Baru'}</DialogTitle>
+            <DialogDescription>Masukkan spesifikasi unit kendaraan tambang dan status penempatan.</DialogDescription>
+          </DialogHeader>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Jenis Angkutan *</label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="passenger">Angkutan Orang</option>
-                <option value="cargo">Angkutan Barang</option>
-              </select>
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Nama / Tipe Unit *</label>
+                <Input
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Toyota Hilux 4x4"
+                  className="h-9 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Nomor Polisi (Plat) *</label>
+                <Input
+                  required
+                  value={formData.license_plate}
+                  onChange={(e) => setFormData({ ...formData, license_plate: e.target.value })}
+                  placeholder="B 9101 NKL"
+                  className="h-9 text-xs font-mono"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Status Kepemilikan *</label>
-              <select
-                value={formData.ownership_type}
-                onChange={(e) => setFormData({ ...formData, ownership_type: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="owned">Milik Perusahaan</option>
-                <option value="rented">Sewa (Rental)</option>
-              </select>
-            </div>
-          </div>
 
-          {formData.ownership_type === 'rented' && (
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Perusahaan Persewaan (Vendor) *</label>
-              <select
-                required
-                value={formData.rental_company_id}
-                onChange={(e) => setFormData({ ...formData, rental_company_id: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="">Pilih Vendor Rental</option>
-                {rentalCompanies.map((rc) => (
-                  <option key={rc.id} value={rc.id}>
-                    {rc.name} ({rc.contact_person})
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Jenis Angkutan *</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="passenger">Angkutan Orang</option>
+                  <option value="cargo">Angkutan Barang</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Status Kepemilikan *</label>
+                <select
+                  value={formData.ownership_type}
+                  onChange={(e) => setFormData({ ...formData, ownership_type: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="owned">Milik Perusahaan</option>
+                  <option value="rented">Sewa (Rental)</option>
+                </select>
+              </div>
             </div>
-          )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Lokasi Wilayah Tambang / Kantor *</label>
-              <select
-                required
-                value={formData.region_id}
-                onChange={(e) => setFormData({ ...formData, region_id: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="">Pilih Lokasi</option>
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name} ({r.type})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Jenis Bahan Bakar *</label>
-              <input
-                type="text"
-                required
-                value={formData.fuel_type}
-                onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
-                placeholder="Solar Dexlite / Biosolar"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
-            </div>
-          </div>
+            {formData.ownership_type === 'rented' && (
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Perusahaan Persewaan (Vendor) *</label>
+                <select
+                  required
+                  value={formData.rental_company_id}
+                  onChange={(e) => setFormData({ ...formData, rental_company_id: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="">Pilih Vendor Rental</option>
+                  {rentalCompanies.map((rc) => (
+                    <option key={rc.id} value={rc.id}>
+                      {rc.name} ({rc.contact_person})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Odometer Terkini (KM)</label>
-              <input
-                type="number"
-                min="0"
-                value={formData.current_odometer}
-                onChange={(e) => setFormData({ ...formData, current_odometer: parseInt(e.target.value, 10) || 0 })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Lokasi Penempatan *</label>
+                <select
+                  required
+                  value={formData.region_id}
+                  onChange={(e) => setFormData({ ...formData, region_id: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="">Pilih Lokasi</option>
+                  {regions.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} ({r.type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Bahan Bakar *</label>
+                <Input
+                  required
+                  value={formData.fuel_type}
+                  onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
+                  placeholder="Solar Dexlite"
+                  className="h-9 text-xs"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Status Ketersediaan</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="available">Tersedia</option>
-                <option value="in_use">Sedang Digunakan</option>
-                <option value="in_service">Dalam Servis</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
-            >
-              Simpan
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Odometer (KM)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={formData.current_odometer}
+                  onChange={(e) => setFormData({ ...formData, current_odometer: parseInt(e.target.value, 10) || 0 })}
+                  className="h-9 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="available">Tersedia</option>
+                  <option value="in_use">Sedang Digunakan</option>
+                  <option value="in_service">Dalam Servis</option>
+                </select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
+                Batal
+              </Button>
+              <Button type="submit" size="sm" className="font-bold text-xs">
+                Simpan
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

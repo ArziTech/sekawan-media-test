@@ -1,9 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Fuel, Plus, Search, Calendar, FileText, DollarSign, Gauge } from 'lucide-react';
-import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import { Modal } from '../components/common/Modal';
+import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const FuelLogs = () => {
   const { isAdmin } = useAuth();
@@ -92,227 +111,221 @@ export const FuelLogs = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Fuel className="w-6 h-6 text-amber-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Fuel className="w-5 h-5 text-amber-500" />
             Monitoring Konsumsi BBM Armada
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Pencatatan pengisian bahan bakar, tracking biaya operasional, dan efisiensi konsumsi BBM.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Pencatatan pengisian bahan bakar, biaya operasional, dan tracking odometer.
           </p>
         </div>
 
         {isAdmin && (
-          <button
-            onClick={handleOpenAdd}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 self-start sm:self-auto"
-          >
+          <Button onClick={handleOpenAdd} size="sm" className="font-bold text-xs gap-1.5 shadow-sm">
             <Plus className="w-4 h-4" />
             Catat Pengisian BBM
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              <tr>
-                <th className="py-4 px-4">Tanggal</th>
-                <th className="py-4 px-4">Kendaraan</th>
-                <th className="py-4 px-4">Tipe Bahan Bakar</th>
-                <th className="py-4 px-4">Volume (Liter)</th>
-                <th className="py-4 px-4">Harga / Liter</th>
-                <th className="py-4 px-4">Total Biaya</th>
-                <th className="py-4 px-4">Odometer</th>
-                <th className="py-4 px-4">No. Struk / Catatan</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tanggal</TableHead>
+                <TableHead>Kendaraan</TableHead>
+                <TableHead>Jenis BBM</TableHead>
+                <TableHead>Volume</TableHead>
+                <TableHead>Harga / Liter</TableHead>
+                <TableHead>Total Biaya</TableHead>
+                <TableHead>Odometer</TableHead>
+                <TableHead className="text-right">No. Struk / Catatan</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr>
-                  <td colSpan="8" className="py-12 text-center text-slate-500">
+                <TableRow>
+                  <TableCell colSpan={8} className="py-12 text-center text-muted-foreground text-xs">
                     Memuat data...
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="py-12 text-center text-slate-500">
+                <TableRow>
+                  <TableCell colSpan={8} className="py-12 text-center text-muted-foreground text-xs">
                     Belum ada catatan BBM.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 logs.map((l) => (
-                  <tr key={l.id} className="hover:bg-slate-800/40">
-                    <td className="py-4 px-4 whitespace-nowrap text-white font-medium">
+                  <TableRow key={l.id}>
+                    <TableCell className="whitespace-nowrap font-medium text-foreground text-xs">
                       {new Date(l.log_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="font-bold text-white">{l.vehicle?.name}</p>
-                      <p className="text-[11px] text-slate-400">{l.vehicle?.license_plate}</p>
-                    </td>
-                    <td className="py-4 px-4 text-amber-400 font-semibold">{l.fuel_type}</td>
-                    <td className="py-4 px-4 font-mono font-bold text-emerald-400">
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <p className="font-semibold text-foreground">{l.vehicle?.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{l.vehicle?.license_plate}</p>
+                    </TableCell>
+                    <TableCell className="text-amber-500 font-medium text-xs">{l.fuel_type}</TableCell>
+                    <TableCell className="font-mono font-bold text-emerald-500 text-xs">
                       {Number(l.liters).toLocaleString('id-ID', { minimumFractionDigits: 2 })} L
-                    </td>
-                    <td className="py-4 px-4 font-mono text-slate-300">
+                    </TableCell>
+                    <TableCell className="font-mono text-muted-foreground text-xs">
                       Rp {Number(l.cost_per_liter).toLocaleString('id-ID')}
-                    </td>
-                    <td className="py-4 px-4 font-mono font-bold text-white">
+                    </TableCell>
+                    <TableCell className="font-mono font-bold text-foreground text-xs">
                       Rp {Number(l.total_cost).toLocaleString('id-ID')}
-                    </td>
-                    <td className="py-4 px-4 font-mono text-slate-300">
+                    </TableCell>
+                    <TableCell className="font-mono text-muted-foreground text-xs">
                       {Number(l.odometer_reading).toLocaleString('id-ID')} km
-                    </td>
-                    <td className="py-4 px-4 text-[11px] text-slate-400 max-w-xs truncate">
-                      {l.receipt_no && <span className="text-slate-300 font-mono">[{l.receipt_no}] </span>}
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-muted-foreground max-w-xs truncate">
+                      {l.receipt_no && <span className="font-mono text-foreground">[{l.receipt_no}] </span>}
                       {l.notes || '-'}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Modal Add Fuel Log */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Catat Pengisian Bahan Bakar (BBM)"
-      >
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Pilih Kendaraan *</label>
-              <select
-                required
-                value={formData.vehicle_id}
-                onChange={(e) => {
-                  const v = vehicles.find((veh) => veh.id == e.target.value);
-                  setFormData({
-                    ...formData,
-                    vehicle_id: e.target.value,
-                    fuel_type: v?.fuel_type || formData.fuel_type,
-                    odometer_reading: v?.current_odometer || formData.odometer_reading,
-                  });
-                }}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="">Pilih Kendaraan</option>
-                {vehicles.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name} ({v.license_plate})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Tanggal Pengisian *</label>
-              <input
-                type="date"
-                required
-                value={formData.log_date}
-                onChange={(e) => setFormData({ ...formData, log_date: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
-            </div>
-          </div>
+      {/* Dialog: Add Fuel Log */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Catat Pengisian Bahan Bakar</DialogTitle>
+            <DialogDescription>Masukkan volume liter, biaya, dan angka odometer saat pengisian.</DialogDescription>
+          </DialogHeader>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Jumlah Liter *</label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                min="0.1"
-                value={formData.liters}
-                onChange={(e) => setFormData({ ...formData, liters: e.target.value })}
-                placeholder="Contoh: 65.50"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Pilih Kendaraan *</label>
+                <select
+                  required
+                  value={formData.vehicle_id}
+                  onChange={(e) => {
+                    const v = vehicles.find((veh) => veh.id == e.target.value);
+                    setFormData({
+                      ...formData,
+                      vehicle_id: e.target.value,
+                      fuel_type: v?.fuel_type || formData.fuel_type,
+                      odometer_reading: v?.current_odometer || formData.odometer_reading,
+                    });
+                  }}
+                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="">Pilih Kendaraan</option>
+                  {vehicles.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} ({v.license_plate})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Tanggal Pengisian *</label>
+                <Input
+                  type="date"
+                  required
+                  value={formData.log_date}
+                  onChange={(e) => setFormData({ ...formData, log_date: e.target.value })}
+                  className="h-9 text-xs"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Harga per Liter (Rp) *</label>
-              <input
-                type="number"
-                required
-                value={formData.cost_per_liter}
-                onChange={(e) => setFormData({ ...formData, cost_per_liter: e.target.value })}
-                placeholder="16500"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Angka Odometer Speedometer (KM) *</label>
-              <input
-                type="number"
-                required
-                value={formData.odometer_reading}
-                onChange={(e) => setFormData({ ...formData, odometer_reading: e.target.value })}
-                placeholder="Contoh: 45100"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Volume (Liter) *</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  required
+                  min="0.1"
+                  value={formData.liters}
+                  onChange={(e) => setFormData({ ...formData, liters: e.target.value })}
+                  placeholder="65.50"
+                  className="h-9 text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Harga / Liter (Rp) *</label>
+                <Input
+                  type="number"
+                  required
+                  value={formData.cost_per_liter}
+                  onChange={(e) => setFormData({ ...formData, cost_per_liter: e.target.value })}
+                  placeholder="16500"
+                  className="h-9 text-xs font-mono"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Jenis Bahan Bakar *</label>
-              <input
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Odometer (KM) *</label>
+                <Input
+                  type="number"
+                  required
+                  value={formData.odometer_reading}
+                  onChange={(e) => setFormData({ ...formData, odometer_reading: e.target.value })}
+                  placeholder="45100"
+                  className="h-9 text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">Jenis BBM *</label>
+                <Input
+                  type="text"
+                  required
+                  value={formData.fuel_type}
+                  onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
+                  placeholder="Solar Dexlite"
+                  className="h-9 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">No. Nota / Struk SPBU</label>
+              <Input
                 type="text"
-                required
-                value={formData.fuel_type}
-                onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
-                placeholder="Solar Dexlite / Biosolar"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
+                value={formData.receipt_no}
+                onChange={(e) => setFormData({ ...formData, receipt_no: e.target.value })}
+                placeholder="SPBU-KDR-8812"
+                className="h-9 text-xs"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-slate-300 font-semibold mb-1">No. Nota / Struk SPBU</label>
-            <input
-              type="text"
-              value={formData.receipt_no}
-              onChange={(e) => setFormData({ ...formData, receipt_no: e.target.value })}
-              placeholder="Contoh: SPBU-KDR-8812"
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">Catatan Tambahan</label>
+              <Textarea
+                rows={2}
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Keterangan..."
+                className="text-xs"
+              />
+            </div>
 
-          <div>
-            <label className="block text-slate-300 font-semibold mb-1">Catatan Tambahan</label>
-            <textarea
-              rows="2"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Keterangan pengisian..."
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-amber-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
-            >
-              Simpan Data BBM
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <DialogFooter>
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
+                Batal
+              </Button>
+              <Button type="submit" size="sm" className="font-bold text-xs">
+                Simpan
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

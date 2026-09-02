@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = async (email, password = 'password123') => {
+  const login = async (email, password) => {
     try {
       const res = await api.post('/auth/login', { email, password });
       if (res.data.success) {
@@ -59,10 +59,6 @@ export const AuthProvider = ({ children }) => {
       toast.error(msg);
       return false;
     }
-  };
-
-  const quickSwitchUser = async (email) => {
-    return await login(email, 'password123');
   };
 
   const logout = async () => {
@@ -87,10 +83,8 @@ export const AuthProvider = ({ children }) => {
         user,
         token,
         loading,
-        demoUsers,
         login,
         logout,
-        quickSwitchUser,
         isAdmin: user?.role === 'admin',
         isApprover: user?.role === 'approver',
       }}

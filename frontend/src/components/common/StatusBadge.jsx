@@ -1,60 +1,55 @@
 import React from 'react';
+import { Badge } from "@/components/ui/badge";
 
 export const BookingStatusBadge = ({ status }) => {
   switch (status) {
     case 'pending_level_1':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+        <Badge variant="outline" className="border-amber-500/40 text-amber-500 bg-amber-500/10 font-semibold text-[11px]">
           Menunggu Level 1
-        </span>
+        </Badge>
       );
     case 'pending_level_2':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+        <Badge variant="outline" className="border-amber-500/40 text-amber-500 bg-amber-500/10 font-semibold text-[11px]">
           Menunggu Level 2
-        </span>
+        </Badge>
       );
     case 'approved':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <Badge variant="outline" className="border-emerald-500/40 text-emerald-500 bg-emerald-500/10 font-semibold text-[11px]">
           Disetujui
-        </span>
+        </Badge>
       );
     case 'in_use':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+        <Badge variant="outline" className="border-blue-500/40 text-blue-500 bg-blue-500/10 font-semibold text-[11px] animate-pulse">
           Sedang Berjalan
-        </span>
+        </Badge>
       );
     case 'completed':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-300 border border-slate-600/40">
-          <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+        <Badge variant="outline" className="border-muted-foreground/40 text-muted-foreground bg-muted font-semibold text-[11px]">
           Selesai
-        </span>
+        </Badge>
       );
     case 'rejected':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+        <Badge variant="destructive" className="font-semibold text-[11px]">
           Ditolak
-        </span>
+        </Badge>
       );
     case 'cancelled':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-400 border border-slate-600">
+        <Badge variant="outline" className="border-border text-muted-foreground font-semibold text-[11px]">
           Dibatalkan
-        </span>
+        </Badge>
       );
     default:
       return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300">
+        <Badge variant="outline" className="text-[11px] font-semibold">
           {status}
-        </span>
+        </Badge>
       );
   }
 };
@@ -63,27 +58,24 @@ export const VehicleStatusBadge = ({ status }) => {
   switch (status) {
     case 'available':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <Badge variant="outline" className="border-emerald-500/40 text-emerald-500 bg-emerald-500/10 font-semibold text-[11px]">
           Tersedia
-        </span>
+        </Badge>
       );
     case 'in_use':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+        <Badge variant="outline" className="border-blue-500/40 text-blue-500 bg-blue-500/10 font-semibold text-[11px]">
           Digunakan
-        </span>
+        </Badge>
       );
     case 'in_service':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+        <Badge variant="outline" className="border-amber-500/40 text-amber-500 bg-amber-500/10 font-semibold text-[11px]">
           Dalam Servis
-        </span>
+        </Badge>
       );
     default:
-      return <span>{status}</span>;
+      return <Badge variant="outline">{status}</Badge>;
   }
 };
 
@@ -91,25 +83,23 @@ export const DriverStatusBadge = ({ status }) => {
   switch (status) {
     case 'available':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <Badge variant="outline" className="border-emerald-500/40 text-emerald-500 bg-emerald-500/10 font-semibold text-[11px]">
           Siap Bertugas
-        </span>
+        </Badge>
       );
     case 'on_duty':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+        <Badge variant="outline" className="border-blue-500/40 text-blue-500 bg-blue-500/10 font-semibold text-[11px]">
           Sedang Bertugas
-        </span>
+        </Badge>
       );
     case 'off':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400">
-          Off / Libur
-        </span>
+        <Badge variant="outline" className="border-border text-muted-foreground font-semibold text-[11px]">
+          Libur / Off
+        </Badge>
       );
     default:
-      return <span>{status}</span>;
+      return <Badge variant="outline">{status}</Badge>;
   }
 };
