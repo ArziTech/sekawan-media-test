@@ -109,14 +109,14 @@ export function AppSidebar({ ...props }) {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/80" {...props}>
-      <SidebarHeader className="h-16 flex items-center justify-center px-4 border-b border-border/60">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="hover:bg-transparent">
+      <SidebarHeader className="h-16 flex items-center justify-center px-3 group-data-[collapsible=icon]:p-0 border-b border-border/60">
+        <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+          <SidebarMenuItem className="flex justify-center">
+            <SidebarMenuButton size="lg" className="hover:bg-transparent group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-slate-950 font-bold text-base shadow-sm shrink-0">
                 ⛏
               </div>
-              <div className="grid flex-1 text-left text-xs leading-tight">
+              <div className="grid flex-1 text-left text-xs leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="truncate font-black tracking-wider text-foreground uppercase">
                   NICKEL FLEET
                 </span>
@@ -129,7 +129,7 @@ export function AppSidebar({ ...props }) {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-3 space-y-2">
+      <SidebarContent className="px-2 py-3 space-y-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
         <NavMain title="Operasional & Alur" items={navOperations} />
         {navFleet.length > 0 && (
           <>
@@ -141,7 +141,7 @@ export function AppSidebar({ ...props }) {
         <NavMain title="Analitik & Rekapitulasi" items={navReports} />
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/60 p-2">
+      <SidebarFooter className="border-t border-border/60 p-2 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
         <NavUser />
       </SidebarFooter>
     </Sidebar>
