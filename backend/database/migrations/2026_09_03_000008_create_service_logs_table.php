@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedInteger('odometer_at_service');
             $table->date('next_service_date')->nullable();
             $table->unsignedInteger('next_service_odometer')->nullable();
-            $table->enum('status', ['scheduled', 'in_progress', 'completed'])->default('completed');
+            $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('completed');
             $table->text('notes')->nullable();
             $table->foreignId('created_by_user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();

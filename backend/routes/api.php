@@ -93,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::get('/service-logs', [ServiceLogController::class, 'index']);
         Route::post('/service-logs', [ServiceLogController::class, 'store']);
+        Route::put('/service-logs/{id}/status', [ServiceLogController::class, 'updateStatus']);
     });
 
     // Periodic Reports

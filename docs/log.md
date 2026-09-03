@@ -442,3 +442,19 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - Catatan keputusan dari Penyetujui Level 1 jika permohonan sedang berada di Level 2.
   - Indikator alur otorisasi berjenjang visual (`renderApprovalTimeline`).
   - Footer dengan tombol aksi kontekstual: Tombol *Setujui Permohonan* & *Tolak* bagi Approver yang berwenang, atau tombol *Batalkan* bagi Administrator.
+
+## [2026-09-03] update | Fitur Pembaruan Status & Penambahan Status Dibatalkan pada Jadwal Servis Armada
+
+- **Backend:**
+  - Menambahkan endpoint `PUT /api/service-logs/{id}/status` pada [`backend/app/Http/Controllers/Api/ServiceLogController.php`](backend/app/Http/Controllers/Api/ServiceLogController.php) dan rute terkait di [`backend/routes/api.php`](backend/routes/api.php).
+  - Menambahkan dukungan status baru `cancelled` (Dibatalkan) di migration, controller, dan validation rules.
+  - Logika sinkronisasi otomatis status armada:
+    - Status `in_progress` $\rightarrow$ Armada otomatis diset `in_service` (Dalam Servis).
+    - Status `completed` / `cancelled` $\rightarrow$ Armada otomatis dipulihkan menjadi `available` (Tersedia) di pool.
+    - Status `completed` mencatat tanggal servis terakhir dan estimasi servis berikutnya.
+- **Frontend:**
+  - Menambahkan tombol aksi **"Update Status"** pada setiap baris tabel [`frontend/src/pages/ServiceLogs.jsx`](frontend/src/pages/ServiceLogs.jsx).
+  - Menambahkan Modal Dialog interaktif **Perbarui Status Servis Armada** yang memungkinkan Admin mengubah status menjadi *Terjadwal*, *Sedang Dikerjakan*, *Selesai*, atau *Dibatalkan*, serta mengoreksi biaya riil, odometer, dan catatan mekanik.
+  - Menambahkan KPI Summary Card ke-4 untuk **Servis Dibatalkan** dan badge penanda status berwarna merah mawar (`cancelled`).
+- **Dokumentasi:**
+  - Memperbarui panduan operasional pada [`docs/panduan-penggunaan.md`](docs/panduan-penggunaan.md).
