@@ -79,7 +79,7 @@ export const Approvals = () => {
 
   // TanStack Query: Fetch Pending Approvals
   const { data: pendingList = [], isLoading: loadingPending, refetch: refetchPending } = useQuery({
-    queryKey: ['approvals-pending'],
+    queryKey: ['approvals-pending', user?.id],
     queryFn: async () => {
       const res = await api.get('/approvals/pending');
       return res.data?.data || [];
@@ -88,7 +88,7 @@ export const Approvals = () => {
 
   // TanStack Query: Fetch Approval History
   const { data: historyList = [], isLoading: loadingHistory, refetch: refetchHistory } = useQuery({
-    queryKey: ['approvals-history'],
+    queryKey: ['approvals-history', user?.id],
     queryFn: async () => {
       const res = await api.get('/approvals/history');
       return res.data?.data?.data || [];

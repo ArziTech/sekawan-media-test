@@ -35,7 +35,12 @@ export function AppSidebar({ ...props }) {
   const [activeDutyCount, setActiveDutyCount] = useState(0);
 
   useEffect(() => {
+    setPendingCount(0);
+    setActiveDutyCount(0);
+
     const fetchCounts = () => {
+      if (!user) return;
+
       api.get('/approvals/pending')
         .then((res) => {
           if (res.data.success) {
@@ -56,7 +61,7 @@ export function AppSidebar({ ...props }) {
     fetchCounts();
     const interval = setInterval(fetchCounts, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.id]);
 
   const navOperations = [
     {
