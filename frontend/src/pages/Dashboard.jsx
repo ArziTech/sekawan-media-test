@@ -98,7 +98,7 @@ export const Dashboard = () => {
     datasets: [
       {
         label: 'Frekuensi Pemesanan',
-        data: chartsData?.usage_trend?.datasets[0]?.data || [],
+        data: chartsData?.usage_trend?.datasets?.[0]?.data || [],
         backgroundColor: '#f59e0b',
         hoverBackgroundColor: '#fbbf24',
         borderRadius: 6,
@@ -140,7 +140,7 @@ export const Dashboard = () => {
     datasets: [
       {
         label: 'Konsumsi BBM (Liter)',
-        data: chartsData?.fuel_trend?.datasets[0]?.data || [],
+        data: chartsData?.fuel_trend?.liters || chartsData?.fuel_trend?.datasets?.[0]?.data || [],
         borderColor: '#10b981',
         backgroundColor: 'rgba(16, 185, 129, 0.08)',
         fill: true,
