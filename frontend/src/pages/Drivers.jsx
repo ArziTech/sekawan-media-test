@@ -351,7 +351,7 @@ export const Drivers = () => {
 
       {/* Modal Form Tambah/Edit Supir (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="w-5 h-5 text-cyan-500" />
@@ -380,7 +380,7 @@ export const Drivers = () => {
                 )}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="license_number"
@@ -388,7 +388,7 @@ export const Drivers = () => {
                     <FormItem>
                       <FormLabel>Nomor SIM BII Umum *</FormLabel>
                       <FormControl>
-                        <Input placeholder="SIM-99887766" className="h-9 text-xs font-mono uppercase" {...field} />
+                        <Input placeholder="Contoh: SIM-99887766" className="h-9 text-xs font-mono uppercase" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -402,7 +402,7 @@ export const Drivers = () => {
                     <FormItem>
                       <FormLabel>Nomor Telepon / WA *</FormLabel>
                       <FormControl>
-                        <Input placeholder="0812-3456-7890" className="h-9 text-xs font-mono" {...field} />
+                        <Input placeholder="Contoh: 0812-3456-7890" className="h-9 text-xs font-mono" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -410,7 +410,7 @@ export const Drivers = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="region_id"

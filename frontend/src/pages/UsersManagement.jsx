@@ -438,7 +438,7 @@ export function UsersManagement() {
 
       {/* Modal Form: Tambah / Edit Pengguna (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCog className="w-5 h-5 text-amber-500" />
@@ -453,72 +453,93 @@ export function UsersManagement() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-4 text-xs">
-              {/* Nama Lengkap */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nama Lengkap & Gelar *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Contoh: Ir. Bambang Sutrisno, M.T."
-                        className="text-xs h-9"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Email Login */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Login *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Contoh: approver1@tambang.com"
-                        className="text-xs h-9"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Kata Sandi */}
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Kata Sandi {editingUser ? '(Kosongkan jika tidak ingin mengubah)' : '*'}
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              {/* Row 1: Nama & Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Lengkap & Gelar *</FormLabel>
+                      <FormControl>
                         <Input
-                          type="password"
-                          placeholder={editingUser ? 'Minimal 6 karakter baru...' : 'Minimal 6 karakter...'}
-                          className="pl-9 text-xs h-9"
+                          placeholder="Contoh: Ir. Bambang Sutrisno, M.T."
+                          className="text-xs h-9"
                           {...field}
                         />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Grid: Role & Approval Tier (shadcn Select) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Login *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Contoh: approver1@tambang.com"
+                          className="text-xs h-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Row 2: Kata Sandi & Jabatan */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Kata Sandi {editingUser ? '(Kosongkan jika tetap)' : '*'}
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            type="password"
+                            placeholder={editingUser ? 'Minimal 6 karakter baru...' : 'Minimal 6 karakter...'}
+                            className="pl-9 text-xs h-9"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="position"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jabatan Resmi (Position)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Contoh: Supervisor Operasional Lapangan"
+                          className="text-xs h-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Row 3: Role & Approval Tier (shadcn Select) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="role"
@@ -541,7 +562,7 @@ export function UsersManagement() {
                   )}
                 />
 
-                {selectedRole === 'approver' && (
+                {selectedRole === 'approver' ? (
                   <FormField
                     control={form.control}
                     name="approval_tier"
@@ -563,29 +584,14 @@ export function UsersManagement() {
                       </FormItem>
                     )}
                   />
+                ) : (
+                  <div className="p-3 bg-muted/40 rounded-lg border border-border/60 flex items-center text-xs text-muted-foreground">
+                    Role Admin Pool memiliki akses penuh kelola pemesanan, armada, dan supir.
+                  </div>
                 )}
               </div>
 
-              {/* Jabatan Resmi */}
-              <FormField
-                control={form.control}
-                name="position"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Jabatan Resmi (Position)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Contoh: Supervisor Operasional Lapangan"
-                        className="text-xs h-9"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Wilayah Tugas (shadcn Select) */}
+              {/* Row 4: Wilayah Tugas (shadcn Select) */}
               <FormField
                 control={form.control}
                 name="region_id"

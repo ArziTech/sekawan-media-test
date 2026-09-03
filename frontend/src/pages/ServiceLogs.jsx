@@ -317,7 +317,7 @@ export const ServiceLogs = () => {
 
       {/* Modal Form Jadwal Servis (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Wrench className="w-5 h-5 text-amber-500" />
@@ -330,7 +330,7 @@ export const ServiceLogs = () => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="vehicle_id"
@@ -378,7 +378,7 @@ export const ServiceLogs = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="service_type"
@@ -417,7 +417,7 @@ export const ServiceLogs = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="workshop_name"
@@ -456,7 +456,7 @@ export const ServiceLogs = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="odometer_at_service"
@@ -478,7 +478,7 @@ export const ServiceLogs = () => {
                     <FormItem>
                       <FormLabel>Odometer Servis Berikutnya (KM)</FormLabel>
                       <FormControl>
-                        <Input type="number" min="0" placeholder="Contoh: 25000" className="h-9 text-xs" {...field} />
+                        <Input type="number" min="0" placeholder="Contoh: 25000 (opsional)" className="h-9 text-xs" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -488,7 +488,7 @@ export const ServiceLogs = () => {
 
               <FormField
                 control={form.control}
-                name="notes"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Deskripsi / Catatan Pengerjaan</FormLabel>

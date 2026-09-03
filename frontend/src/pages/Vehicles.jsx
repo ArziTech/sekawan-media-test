@@ -396,7 +396,7 @@ export const Vehicles = () => {
 
       {/* Modal Form Tambah/Edit Kendaraan (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Truck className="w-5 h-5 text-amber-500" />
@@ -411,7 +411,7 @@ export const Vehicles = () => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -419,7 +419,7 @@ export const Vehicles = () => {
                     <FormItem>
                       <FormLabel>Nama Model Kendaraan *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Toyota Hilux 4x4 D-Cab" className="h-9 text-xs" {...field} />
+                        <Input placeholder="Contoh: Toyota Hilux 4x4 D-Cab" className="h-9 text-xs" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -433,7 +433,7 @@ export const Vehicles = () => {
                     <FormItem>
                       <FormLabel>Nomor Polisi / Plat *</FormLabel>
                       <FormControl>
-                        <Input placeholder="B 9101 NKL" className="h-9 text-xs font-mono uppercase" {...field} />
+                        <Input placeholder="Contoh: B 9101 NKL" className="h-9 text-xs font-mono uppercase" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -441,7 +441,7 @@ export const Vehicles = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="type"
@@ -514,7 +514,7 @@ export const Vehicles = () => {
                 />
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="region_id"
@@ -547,7 +547,7 @@ export const Vehicles = () => {
                     <FormItem>
                       <FormLabel>Jenis Bahan Bakar *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Solar Dexlite" className="h-9 text-xs" {...field} />
+                        <Input placeholder="Contoh: Solar Dexlite" className="h-9 text-xs" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -555,7 +555,7 @@ export const Vehicles = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="current_odometer"

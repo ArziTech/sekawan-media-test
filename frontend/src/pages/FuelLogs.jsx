@@ -324,7 +324,7 @@ export const FuelLogs = () => {
 
       {/* Modal Form Tambah Log BBM (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Fuel className="w-5 h-5 text-emerald-500" />
@@ -337,7 +337,7 @@ export const FuelLogs = () => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="vehicle_id"
@@ -388,7 +388,7 @@ export const FuelLogs = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="liters"
@@ -419,14 +419,14 @@ export const FuelLogs = () => {
               </div>
 
               {/* Total Calculation Preview */}
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-between">
-                <span className="text-muted-foreground font-semibold">Estimasi Total Biaya:</span>
-                <span className="text-base font-bold text-emerald-500 font-mono">
+              <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-between">
+                <span className="text-muted-foreground font-medium text-xs">Estimasi Total Biaya:</span>
+                <span className="text-lg font-bold text-emerald-500 font-mono">
                   Rp {calculatedTotal.toLocaleString('id-ID')}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="odometer_reading"
@@ -448,7 +448,7 @@ export const FuelLogs = () => {
                     <FormItem>
                       <FormLabel>Jenis Bahan Bakar *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Solar Dexlite" className="h-9 text-xs" {...field} />
+                        <Input type="text" placeholder="Contoh: Solar Dexlite" className="h-9 text-xs" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -458,12 +458,12 @@ export const FuelLogs = () => {
 
               <FormField
                 control={form.control}
-                name="receipt_no"
+                name="gas_station_receipt"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nomor Nota / Struk SPBU</FormLabel>
                     <FormControl>
-                      <Input placeholder="SPBU-KDR-8899" className="h-9 text-xs font-mono" {...field} />
+                      <Input type="text" placeholder="Contoh: SPBU-KDR-8899 (opsional)" className="h-9 text-xs" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -378,3 +378,16 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Menghapus seluruh override manual styling warna background (`bg-amber-500`, `text-slate-950`, `hover:bg-amber-400`, dll.) pada elemen `<Button>` dan `buttonVariants()` di seluruh modul frontend.
 - Mengembalikan konsistensi penuh pada varian dan ukuran bawaan komponen shadcn/ui [`frontend/src/components/ui/button.jsx`](frontend/src/components/ui/button.jsx) (`variant="default"`, `variant="destructive"`, `variant="destructiveOutline"`, `variant="emerald"`, `variant="blue"`, `size="sm"`, `size="xs"`).
 - File yang dibersihkan: [`Drivers.jsx`](frontend/src/pages/Drivers.jsx), [`Vehicles.jsx`](frontend/src/pages/Vehicles.jsx), [`UsersManagement.jsx`](frontend/src/pages/UsersManagement.jsx), [`FuelLogs.jsx`](frontend/src/pages/FuelLogs.jsx), [`ServiceLogs.jsx`](frontend/src/pages/ServiceLogs.jsx), [`Bookings.jsx`](frontend/src/pages/Bookings.jsx), [`Approvals.jsx`](frontend/src/pages/Approvals.jsx), [`Reports.jsx`](frontend/src/pages/Reports.jsx), [`Dashboard.jsx`](frontend/src/pages/Dashboard.jsx), [`BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx).
+
+## [2026-09-03] refactor | Penyesuaian Lebar & Tata Letak Modal Form Dialog (UI Enhancement)
+
+- Mengubah batas lebar dasar [`frontend/src/components/ui/dialog.jsx`](frontend/src/components/ui/dialog.jsx) dari `sm:max-w-sm` menjadi `sm:max-w-lg p-5`.
+- Memperlebar seluruh modal form input kompleks menjadi `sm:max-w-2xl` / `sm:max-w-xl` dengan grid 2-kolom `gap-4` yang rapi dan lapang:
+  - **BBM:** [`FuelLogs.jsx`](frontend/src/pages/FuelLogs.jsx) (`sm:max-w-2xl`).
+  - **Servis:** [`ServiceLogs.jsx`](frontend/src/pages/ServiceLogs.jsx) (`sm:max-w-2xl`).
+  - **Manajemen Pengguna:** [`UsersManagement.jsx`](frontend/src/pages/UsersManagement.jsx) (`sm:max-w-2xl`).
+  - **Armada Kendaraan:** [`Vehicles.jsx`](frontend/src/pages/Vehicles.jsx) (`sm:max-w-2xl`).
+  - **Master Supir:** [`Drivers.jsx`](frontend/src/pages/Drivers.jsx) (`sm:max-w-xl`).
+  - **Pemesanan Kendaraan:** [`Bookings.jsx`](frontend/src/pages/Bookings.jsx) (`sm:max-w-2xl`).
+  - **Portal Persetujuan:** [`Approvals.jsx`](frontend/src/pages/Approvals.jsx) (`sm:max-w-lg`).
+- Label dan dropdown select tidak lagi terpotong/sempit, memberikan ruang visual yang proporsional dan ergonomis.

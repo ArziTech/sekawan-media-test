@@ -472,7 +472,7 @@ export const Approvals = () => {
 
       {/* Modal Dialog: Konfirmasi Persetujuan / Penolakan (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isActionModalOpen} onOpenChange={setIsActionModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {actionType === 'approve' ? (
@@ -545,7 +545,7 @@ export const Approvals = () => {
 
       {/* Modal Dialog: Pembatalan Pemesanan oleh Admin (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-rose-500">
               <AlertTriangle className="w-5 h-5" />

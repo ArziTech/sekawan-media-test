@@ -470,7 +470,7 @@ export const Bookings = () => {
 
       {/* Modal Form: Buat Pemesanan Baru (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-amber-500" />
@@ -484,7 +484,7 @@ export const Bookings = () => {
           <Form {...createForm}>
             <form onSubmit={createForm.handleSubmit(onSubmitCreate)} className="space-y-4 text-xs">
               {/* Pemohon & Divisi */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={createForm.control}
                   name="requester_name"
@@ -515,7 +515,7 @@ export const Bookings = () => {
               </div>
 
               {/* Rute Asal & Tujuan */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={createForm.control}
                   name="region_id"
@@ -568,7 +568,7 @@ export const Bookings = () => {
               </div>
 
               {/* Pilihan Kendaraan & Supir */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={createForm.control}
                   name="vehicle_id"
@@ -622,7 +622,7 @@ export const Bookings = () => {
               </div>
 
               {/* Tanggal Mulai & Selesai */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={createForm.control}
                   name="start_date"
@@ -668,13 +668,13 @@ export const Bookings = () => {
               />
 
               {/* Penyetujui Berjenjang (Level 1 & Level 2) */}
-              <div className="p-3 bg-muted/30 border border-border/80 rounded-xl space-y-3">
+              <div className="p-3.5 bg-muted/30 border border-border/80 rounded-xl space-y-3">
                 <div className="flex items-center gap-1.5 font-bold text-foreground">
                   <ShieldCheck className="w-4 h-4 text-amber-500" />
                   <span>Alur Otorisasi Bertingkat (Approval Flow)</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
                     name="approver_level_1_id"
@@ -747,7 +747,7 @@ export const Bookings = () => {
 
       {/* Modal Dialog: Selesaikan Perjalanan (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isCompleteOpen} onOpenChange={setIsCompleteOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-emerald-500">
               <CheckCircle className="w-5 h-5" />
@@ -811,7 +811,7 @@ export const Bookings = () => {
       {/* Modal Dialog: Detail Pemesanan */}
       {selectedBooking && (
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-xl">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between">
                 <span className="font-mono text-amber-500 font-bold">{selectedBooking.booking_code}</span>
