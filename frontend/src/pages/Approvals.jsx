@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
   CheckSquare,
   Clock,
@@ -13,6 +17,7 @@ import {
   AlertCircle,
   Ban,
   AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +27,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Table,
   TableHeader,
@@ -39,411 +52,503 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { BookingStatusBadge } from '@/components/common/StatusBadge';
+import { cn } from '@/lib/utils';
+
+const actionFormSchema = z.object({
+  notes: z.string().optional(),
+});
+
+const cancelFormSchema = z.object({
+  reason: z.string().min(5, 'Alasan pembatalan minimal 5 karakter.'),
+});
 
 export const Approvals = () => {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState('pending');
-  const [pendingList, setPendingList] = useState([]);
-  const [historyList, setHistoryList] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Approve/Reject Action Dialog State (Approver Only)
+  // Dialog States
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [actionType, setActionType] = useState('approve');
-  const [notes, setNotes] = useState('');
-  const [processing, setProcessing] = useState(false);
 
-  // Cancel Booking Dialog State (Admin Only)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [selectedCancelBooking, setSelectedCancelBooking] = useState(null);
-  const [cancelling, setCancelling] = useState(false);
+  const [cancelingBooking, setCancelingBooking] = useState(null);
 
-  const fetchPending = async () => {
-    setLoading(true);
-    try {
+  // TanStack Query: Fetch Pending Approvals
+  const { data: pendingList = [], isLoading: loadingPending, refetch: refetchPending } = useQuery({
+    queryKey: ['approvals-pending'],
+    queryFn: async () => {
       const res = await api.get('/approvals/pending');
-      if (res.data.success) {
-        setPendingList(res.data.data || []);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memuat daftar tugas persetujuan.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.data?.data || [];
+    },
+  });
 
-  const fetchHistory = async () => {
-    setLoading(true);
-    try {
+  // TanStack Query: Fetch Approval History
+  const { data: historyList = [], isLoading: loadingHistory, refetch: refetchHistory } = useQuery({
+    queryKey: ['approvals-history'],
+    queryFn: async () => {
       const res = await api.get('/approvals/history');
-      if (res.data.success) {
-        setHistoryList(res.data.data.data || []);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memuat riwayat persetujuan.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.data?.data?.data || [];
+    },
+  });
 
-  useEffect(() => {
-    if (activeTab === 'pending') {
-      fetchPending();
-    } else {
-      fetchHistory();
-    }
-  }, [activeTab]);
+  // React Hook Form for Action (Approve / Reject)
+  const actionForm = useForm({
+    resolver: zodResolver(actionFormSchema),
+    defaultValues: { notes: '' },
+  });
 
-  const handleOpenActionModal = (booking, type) => {
+  // React Hook Form for Cancel
+  const cancelForm = useForm({
+    resolver: zodResolver(cancelFormSchema),
+    defaultValues: { reason: '' },
+  });
+
+  // TanStack Mutation: Approve / Reject Action
+  const actionMutation = useMutation({
+    mutationFn: async ({ bookingId, action, notes }) => {
+      return api.post(`/approvals/${bookingId}/action`, {
+        action,
+        notes: notes || undefined,
+      });
+    },
+    onSuccess: (res) => {
+      toast.success(res.data?.message || 'Keputusan persetujuan berhasil dicatat.');
+      setIsActionModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['approvals-pending'] });
+      queryClient.invalidateQueries({ queryKey: ['approvals-history'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Gagal memproses persetujuan.');
+    },
+  });
+
+  // TanStack Mutation: Cancel Booking
+  const cancelMutation = useMutation({
+    mutationFn: async ({ bookingId, reason }) => {
+      return api.post(`/bookings/${bookingId}/cancel`, {
+        reason,
+      });
+    },
+    onSuccess: (res) => {
+      toast.success(res.data?.message || 'Pemesanan berhasil dibatalkan.');
+      setIsCancelModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['approvals-pending'] });
+      queryClient.invalidateQueries({ queryKey: ['approvals-history'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Gagal membatalkan pemesanan.');
+    },
+  });
+
+  const handleOpenAction = (booking, type) => {
     setSelectedBooking(booking);
     setActionType(type);
-    setNotes(type === 'approve' ? 'Disetujui untuk kegiatan operasional lapangan.' : '');
+    actionForm.reset({ notes: '' });
     setIsActionModalOpen(true);
   };
 
-  const handleSubmitAction = async (e) => {
-    e.preventDefault();
-    if (actionType === 'reject' && !notes.trim()) {
-      toast.error('Wajib mengisi catatan alasan penolakan.');
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      const res = await api.post(`/approvals/${selectedBooking.id}/action`, {
-        action: actionType,
-        notes: notes.trim(),
-      });
-
-      if (res.data.success) {
-        toast.success(res.data.message);
-        setIsActionModalOpen(false);
-        fetchPending();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal memproses persetujuan.');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleOpenCancelModal = (booking) => {
-    setSelectedCancelBooking(booking);
+  const handleOpenCancel = (booking) => {
+    setCancelingBooking(booking);
+    cancelForm.reset({ reason: '' });
     setIsCancelModalOpen(true);
   };
 
-  const handleConfirmCancel = async () => {
-    if (!selectedCancelBooking) return;
-    setCancelling(true);
-    try {
-      const res = await api.post(`/bookings/${selectedCancelBooking.id}/cancel`);
-      if (res.data.success) {
-        toast.success('Pemesanan berhasil dibatalkan.');
-        setIsCancelModalOpen(false);
-        fetchPending();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal membatalkan pemesanan.');
-    } finally {
-      setCancelling(false);
+  const onSubmitAction = (values) => {
+    if (actionType === 'reject' && (!values.notes || values.notes.trim().length < 5)) {
+      actionForm.setError('notes', { message: 'Alasan penolakan wajib diisi (minimal 5 karakter).' });
+      return;
     }
+    actionMutation.mutate({
+      bookingId: selectedBooking.id,
+      action: actionType,
+      notes: values.notes?.trim(),
+    });
   };
 
+  const onSubmitCancel = (values) => {
+    cancelMutation.mutate({
+      bookingId: cancelingBooking.id,
+      reason: values.reason.trim(),
+    });
+  };
+
+  const renderApprovalTimeline = (approvals = []) => {
+    const tier1 = approvals.find((a) => a.tier_level === 1);
+    const tier2 = approvals.find((a) => a.tier_level === 2);
+
+    const getRoleTitle = (tier) => {
+      return tier === 1
+        ? 'Penyetujui Level 1 (Supervisor Operasional)'
+        : 'Penyetujui Level 2 (Kepala Pool / GM)';
+    };
+
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        {/* Tier 1 */}
+        <div className="flex items-center gap-1.5 p-1.5 rounded-lg border bg-muted/40">
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground text-[11px]">{getRoleTitle(1)}</span>
+            <div className="flex items-center gap-1 mt-0.5">
+              {tier1?.status === 'approved' && (
+                <span className="text-[10px] text-emerald-400 flex items-center gap-0.5 font-bold">
+                  <CheckCircle2 className="w-3 h-3" /> Disetujui
+                </span>
+              )}
+              {tier1?.status === 'rejected' && (
+                <span className="text-[10px] text-rose-400 flex items-center gap-0.5 font-bold">
+                  <XCircle className="w-3 h-3" /> Ditolak
+                </span>
+              )}
+              {tier1?.status === 'pending' && (
+                <span className="text-[10px] text-amber-400 flex items-center gap-0.5 font-semibold">
+                  <Clock className="w-3 h-3" /> Menunggu
+                </span>
+              )}
+              {!tier1 && <span className="text-[10px] text-muted-foreground">-</span>}
+            </div>
+          </div>
+        </div>
+
+        <span className="text-muted-foreground font-bold">&rarr;</span>
+
+        {/* Tier 2 */}
+        <div className="flex items-center gap-1.5 p-1.5 rounded-lg border bg-muted/40">
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground text-[11px]">{getRoleTitle(2)}</span>
+            <div className="flex items-center gap-1 mt-0.5">
+              {tier2?.status === 'approved' && (
+                <span className="text-[10px] text-emerald-400 flex items-center gap-0.5 font-bold">
+                  <CheckCircle2 className="w-3 h-3" /> Disetujui
+                </span>
+              )}
+              {tier2?.status === 'rejected' && (
+                <span className="text-[10px] text-rose-400 flex items-center gap-0.5 font-bold">
+                  <XCircle className="w-3 h-3" /> Ditolak
+                </span>
+              )}
+              {tier2?.status === 'pending' && (
+                <span className="text-[10px] text-amber-400 flex items-center gap-0.5 font-semibold">
+                  <Clock className="w-3 h-3" /> Menunggu
+                </span>
+              )}
+              {!tier2 && <span className="text-[10px] text-muted-foreground">-</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const isLoading = activeTab === 'pending' ? loadingPending : loadingHistory;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-amber-500" />
-            Portal Persetujuan Berjenjang
+            <ShieldCheck className="w-6 h-6 text-amber-500" />
+            Portal Persetujuan Berjenjang (Approvals)
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {isAdmin
-              ? 'Monitoring antrean persetujuan Level 1 & Level 2 dan pembatalan pemesanan oleh Admin.'
-              : 'Otorisasi persetujuan berjenjang Level 1 (Supervisor) & Level 2 (Kepala Pool / GM).'}
+            Otorisasi sekuensial dua tingkat: Tingkat 1 (Supervisor Operasional) &rarr; Tingkat 2 (Kepala Pool & GM).
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-          <TabsList className="h-9">
-            <TabsTrigger value="pending" className="text-xs font-semibold gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              Menunggu Tindakan ({pendingList.length})
-            </TabsTrigger>
-            <TabsTrigger value="history" className="text-xs font-semibold gap-1.5">
-              <History className="w-3.5 h-3.5" />
-              Riwayat Keputusan
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => (activeTab === 'pending' ? refetchPending() : refetchHistory())}
+          disabled={isLoading}
+          className="text-xs gap-1.5 h-9"
+        >
+          <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
+          <span>Segarkan</span>
+        </Button>
       </div>
 
-      {activeTab === 'pending' ? (
-        <div>
-          {loading ? (
-            <div className="py-16 text-center text-muted-foreground">
-              <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
-              <p className="text-xs">Memuat daftar tugas persetujuan...</p>
-            </div>
-          ) : pendingList.length === 0 ? (
-            <Card className="text-center py-12">
-              <CardContent className="space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-                <h3 className="text-sm font-bold text-foreground">Semua Persetujuan Selesai</h3>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  Tidak ada pemesanan kendaraan yang sedang menunggu tindakan saat ini.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {pendingList.map((b) => {
-                const l1 = b.approvals?.find((a) => a.approval_level === 1);
-                const l2 = b.approvals?.find((a) => a.approval_level === 2);
-                const currentLevel = b.status === 'pending_level_1' ? 1 : 2;
-                const activeApprover = currentLevel === 1 ? l1?.approver : l2?.approver;
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="bg-muted/50 p-1 border border-border/60 rounded-xl">
+          <TabsTrigger value="pending" className="gap-2 text-xs">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Menunggu Keputusan</span>
+            <Badge className="ml-1 bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px] px-1.5 py-0.2">
+              {pendingList.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="history" className="gap-2 text-xs">
+            <History className="w-3.5 h-3.5" />
+            <span>Riwayat Persetujuan</span>
+          </TabsTrigger>
+        </TabsList>
 
-                return (
-                  <Card key={b.id} className="flex flex-col justify-between overflow-hidden relative">
-                    <div className="absolute top-0 right-0 px-3 py-1 bg-amber-500/10 text-amber-500 border-b border-l border-amber-500/20 text-[10px] font-bold uppercase tracking-wider rounded-bl-lg">
-                      Tahap Persetujuan Level {currentLevel}
-                    </div>
-
-                    <CardContent className="p-5 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-amber-500">
-                          {b.booking_code}
-                        </span>
-                        <BookingStatusBadge status={b.status} />
-                      </div>
-
-                      <div className="space-y-2 text-xs">
-                        <div>
-                          <p className="font-bold text-foreground text-sm">{b.requester_name}</p>
-                          <p className="text-[11px] text-muted-foreground">{b.requester_department}</p>
-                        </div>
-
-                        <div className="p-3 rounded-lg bg-muted/40 border border-border/60 space-y-1.5">
-                          <div className="flex items-center gap-2 text-foreground">
-                            <Truck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                            <span className="font-semibold">{b.vehicle?.name}</span>
-                            <span className="text-muted-foreground">({b.vehicle?.license_plate})</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <User className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
-                            <span>Supir: {b.driver?.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                            <span>{b.origin_region?.name} &rarr; <strong className="text-foreground">{b.destination_region?.name}</strong></span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Calendar className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                            <span>
-                              {new Date(b.start_date).toLocaleDateString('id-ID')} s/d {new Date(b.end_date).toLocaleDateString('id-ID')}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                            Keperluan:
-                          </span>
-                          <p className="text-foreground bg-muted/30 p-2.5 rounded-lg border border-border/60 italic">
-                            "{b.purpose}"
-                          </p>
-                        </div>
-
-                        {currentLevel === 2 && l1 && (
-                          <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px]">
-                            <p className="font-bold text-emerald-500">
-                              Catatan Penyetujui Level 1 (Supervisor):
-                            </p>
-                            <p className="text-foreground mt-0.5">"{l1.notes || 'Disetujui'}"</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-
-                    <div className="p-4 pt-3 border-t border-border/80">
-                      {isAdmin ? (
-                        /* Admin View: Cannot Approve/Reject, only Cancel Booking */
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 self-start sm:self-auto">
-                            <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                            <span>
-                              Menunggu persetujuan: <strong className="text-foreground">{currentLevel === 1 ? 'Penyetujui Level 1 (Supervisor Operasional)' : 'Penyetujui Level 2 (Kepala Pool / GM)'}</strong>
-                            </span>
-                          </div>
-                          <Button
-                            onClick={() => handleOpenCancelModal(b)}
-                            variant="destructive"
-                            size="sm"
-                            className="w-full sm:w-auto font-bold text-xs gap-1.5 h-8.5 shadow-xs"
-                          >
-                            <Ban className="w-3.5 h-3.5" />
-                            Batalkan Pemesanan
-                          </Button>
-                        </div>
-                      ) : (
-                        /* Approver View: Approve or Reject buttons */
-                        <div className="flex items-center gap-2.5">
-                          <Button
-                            onClick={() => handleOpenActionModal(b, 'approve')}
-                            variant="emerald"
-                            size="sm"
-                            className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                            Setujui (Approve)
-                          </Button>
-                          <Button
-                            onClick={() => handleOpenActionModal(b, 'reject')}
-                            variant="destructive"
-                            size="sm"
-                            className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            Tolak (Reject)
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : (
-        /* History Tab */
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Kode Booking</TableHead>
-                  <TableHead>Tingkat</TableHead>
-                  <TableHead>Pemohon</TableHead>
-                  <TableHead>Kendaraan</TableHead>
-                  <TableHead>Keputusan</TableHead>
-                  <TableHead>Catatan</TableHead>
-                  <TableHead className="text-right">Waktu Diproses</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-12 text-center text-muted-foreground text-xs">
-                      Memuat riwayat...
-                    </TableCell>
+        {/* Tab 1: Pending Approvals */}
+        <TabsContent value="pending" className="space-y-4">
+          <Card className="border-border/80 shadow-xs">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 text-[11px] uppercase font-bold tracking-wider">
+                    <TableHead className="py-3 px-4">No. Booking & Pemohon</TableHead>
+                    <TableHead className="py-3 px-4">Kendaraan & Supir</TableHead>
+                    <TableHead className="py-3 px-4">Rute Perjalanan</TableHead>
+                    <TableHead className="py-3 px-4">Jadwal Pakai</TableHead>
+                    <TableHead className="py-3 px-4">Alur Tingkat</TableHead>
+                    <TableHead className="py-3 px-4 text-right">Aksi Otorisasi</TableHead>
                   </TableRow>
-                ) : historyList.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-12 text-center text-muted-foreground text-xs">
-                      Belum ada riwayat persetujuan.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  historyList.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-mono font-bold text-amber-500 text-xs">
-                        {item.booking?.booking_code}
-                      </TableCell>
-                      <TableCell className="font-medium text-foreground text-xs">
-                        Level {item.approval_level}
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        <p className="font-semibold text-foreground">{item.booking?.requester_name}</p>
-                        <p className="text-[11px] text-muted-foreground">{item.booking?.requester_department}</p>
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        <p className="text-foreground">{item.booking?.vehicle?.name}</p>
-                        <p className="text-[11px] text-muted-foreground">{item.booking?.vehicle?.license_plate}</p>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={item.status === 'approved' ? 'emerald' : 'destructive'}
-                          className="uppercase font-bold text-[10px]"
-                        >
-                          {item.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate text-xs text-muted-foreground">
-                        "{item.notes || '-'}"
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap text-xs text-muted-foreground">
-                        {item.action_date ? new Date(item.action_date).toLocaleString('id-ID') : '-'}
+                </TableHeader>
+                <TableBody className="divide-y divide-border/60">
+                  {loadingPending ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                        <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
+                        <p>Memeriksa antrean persetujuan...</p>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+                  ) : pendingList.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-500/40 mx-auto mb-2" />
+                        <p className="font-semibold text-foreground">Tidak Ada Antrean Persetujuan</p>
+                        <p className="text-muted-foreground text-[11px] mt-0.5">Semua permohonan kendaraan telah diproses atau sudah selesai diotorisasi.</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    pendingList.map((item) => {
+                      const b = item.booking || item;
+                      return (
+                        <TableRow key={item.id || b.id} className="hover:bg-muted/30 transition-colors">
+                          <TableCell className="py-3.5 px-4 text-xs">
+                            <div className="font-mono font-bold text-amber-500">{b.booking_code}</div>
+                            <div className="font-bold text-foreground mt-0.5">{b.requester_name}</div>
+                            <div className="text-[10px] text-muted-foreground">{b.department}</div>
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs">
+                            <div className="font-bold text-foreground flex items-center gap-1">
+                              <Truck className="w-3.5 h-3.5 text-muted-foreground" />
+                              {b.vehicle?.name}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground font-mono">{b.vehicle?.license_plate}</div>
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <User className="w-3 h-3" />
+                              {b.driver ? b.driver.name : 'Tanpa Supir'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs">
+                            <div className="flex items-center gap-1 font-semibold text-foreground">
+                              <MapPin className="w-3 h-3 text-emerald-400" />
+                              {b.origin_region?.name} &rarr; <MapPin className="w-3 h-3 text-rose-400" /> {b.destination_region?.name}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{b.purpose}</div>
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs font-mono">
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                              {new Date(b.start_date).toLocaleDateString('id-ID')} - {new Date(b.end_date).toLocaleDateString('id-ID')}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4">
+                            {renderApprovalTimeline(b.approvals)}
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-right">
+                            {isAdmin ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenCancel(b)}
+                                className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10 hover:border-rose-500 font-bold text-xs gap-1.5 h-8"
+                              >
+                                <Ban className="w-3.5 h-3.5" />
+                                <span>Batalkan</span>
+                              </Button>
+                            ) : (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenAction(b, 'reject')}
+                                  className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold text-xs gap-1 h-8"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  <span>Tolak</span>
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => handleOpenAction(b, 'approve')}
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs gap-1 h-8 shadow-xs"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Setujui</span>
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Dialog: Proses Persetujuan (Approvers Only) */}
+        {/* Tab 2: Approval History */}
+        <TabsContent value="history" className="space-y-4">
+          <Card className="border-border/80 shadow-xs">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 text-[11px] uppercase font-bold tracking-wider">
+                    <TableHead className="py-3 px-4">No. Booking</TableHead>
+                    <TableHead className="py-3 px-4">Pemohon & Divisi</TableHead>
+                    <TableHead className="py-3 px-4">Armada & Supir</TableHead>
+                    <TableHead className="py-3 px-4">Status Pemesanan</TableHead>
+                    <TableHead className="py-3 px-4">Alur Persetujuan</TableHead>
+                    <TableHead className="py-3 px-4">Catatan Otorisasi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border/60">
+                  {loadingHistory ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                        <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
+                        <p>Memuat riwayat persetujuan...</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : historyList.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                        Belum ada riwayat persetujuan yang tercatat.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    historyList.map((item) => {
+                      const b = item.booking || item;
+                      return (
+                        <TableRow key={item.id || b.id} className="hover:bg-muted/30 transition-colors">
+                          <TableCell className="py-3.5 px-4 text-xs font-mono font-bold text-amber-500">
+                            {b.booking_code}
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs">
+                            <div className="font-bold text-foreground">{b.requester_name}</div>
+                            <div className="text-[10px] text-muted-foreground">{b.department}</div>
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs">
+                            <div className="font-semibold text-foreground">{b.vehicle?.name}</div>
+                            <div className="text-[10px] text-muted-foreground">{b.driver?.name || 'Tanpa Supir'}</div>
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4">
+                            <BookingStatusBadge status={b.status} />
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4">
+                            {renderApprovalTimeline(b.approvals)}
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs text-muted-foreground max-w-xs truncate">
+                            {b.approvals?.map((a) => a.notes).filter(Boolean).join(' | ') || '-'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Modal Dialog: Konfirmasi Persetujuan / Penolakan (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isActionModalOpen} onOpenChange={setIsActionModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {actionType === 'approve' ? 'Konfirmasi Persetujuan Pemesanan' : 'Konfirmasi Penolakan Pemesanan'}
+            <DialogTitle className="flex items-center gap-2">
+              {actionType === 'approve' ? (
+                <>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  Konfirmasi Persetujuan Permohonan
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-5 h-5 text-rose-500" />
+                  Konfirmasi Penolakan Permohonan
+                </>
+              )}
             </DialogTitle>
             <DialogDescription>
-              Pemesanan: {selectedBooking?.booking_code} &middot; {selectedBooking?.requester_name} ({selectedBooking?.vehicle?.name})
+              {actionType === 'approve'
+                ? `Anda akan menyetujui alokasi armada untuk permohonan ${selectedBooking?.booking_code}.`
+                : `Berikan alasan penolakan untuk permohonan ${selectedBooking?.booking_code}.`}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmitAction} className="space-y-4 text-xs">
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">
-                Catatan / Alasan {actionType === 'reject' ? '(Wajib Diisi)*' : '(Opsional)'}
-              </label>
-              <Textarea
-                required={actionType === 'reject'}
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={
-                  actionType === 'approve'
-                    ? 'Tuliskan catatan persetujuan jika ada...'
-                    : 'Jelaskan alasan mengapa pemesanan ditolak...'
-                }
-                className="text-xs"
+          <Form {...actionForm}>
+            <form onSubmit={actionForm.handleSubmit(onSubmitAction)} className="space-y-4 text-xs">
+              <FormField
+                control={actionForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {actionType === 'reject' ? 'Alasan Penolakan *' : 'Catatan Otorisasi (Opsional)'}
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          actionType === 'reject'
+                            ? 'Jelaskan alasan penolakan permohonan ini...'
+                            : 'Catatan tambahan terkait persetujuan operasional...'
+                        }
+                        rows={3}
+                        className="text-xs"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsActionModalOpen(false)}>
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={processing}
-                variant={actionType === 'approve' ? 'emerald' : 'destructive'}
-                size="sm"
-                className="font-bold text-xs"
-              >
-                {processing
-                  ? 'Memproses...'
-                  : actionType === 'approve'
-                  ? 'Konfirmasi Setujui'
-                  : 'Konfirmasi Tolak'}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter className="gap-2 pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsActionModalOpen(false)}>
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={actionMutation.isPending}
+                  className={cn(
+                    "font-bold text-xs gap-1.5",
+                    actionType === 'approve'
+                      ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                      : "bg-rose-600 hover:bg-rose-500 text-white"
+                  )}
+                >
+                  {actionMutation.isPending
+                    ? 'Memproses...'
+                    : actionType === 'approve'
+                    ? 'Ya, Setujui Permohonan'
+                    : 'Tolak Permohonan'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Batalkan Pemesanan (Admin Only) */}
+      {/* Modal Dialog: Pembatalan Pemesanan oleh Admin (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -452,36 +557,47 @@ export const Approvals = () => {
               Batalkan Pemesanan Kendaraan
             </DialogTitle>
             <DialogDescription>
-              Apakah Anda yakin ingin membatalkan pemesanan <strong>{selectedCancelBooking?.booking_code}</strong> atas nama <strong>{selectedCancelBooking?.requester_name}</strong>?
+              Pembatalan oleh administrator untuk permohonan <strong>{cancelingBooking?.booking_code}</strong> ({cancelingBooking?.requester_name}).
             </DialogDescription>
           </DialogHeader>
 
-          <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs space-y-1 text-rose-400">
-            <p className="font-bold">Perhatian:</p>
-            <p>Pemesanan yang dibatalkan tidak dapat diproses kembali dan status armada/supir akan dipulihkan menjadi Tersedia.</p>
-          </div>
+          <Form {...cancelForm}>
+            <form onSubmit={cancelForm.handleSubmit(onSubmitCancel)} className="space-y-4 text-xs">
+              <FormField
+                control={cancelForm.control}
+                name="reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alasan Pembatalan *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Masukkan justifikasi administratif pembatalan permohonan..."
+                        rows={3}
+                        className="text-xs"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsCancelModalOpen(false)}
-            >
-              Kembali
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              disabled={cancelling}
-              onClick={handleConfirmCancel}
-              className="font-bold text-xs gap-1.5"
-            >
-              <Ban className="w-3.5 h-3.5" />
-              {cancelling ? 'Membatalkan...' : 'Ya, Batalkan Pemesanan'}
-            </Button>
-          </DialogFooter>
+              <DialogFooter className="gap-2 pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsCancelModalOpen(false)}>
+                  Tutup
+                </Button>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  disabled={cancelMutation.isPending}
+                  className="font-bold text-xs gap-1.5"
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  {cancelMutation.isPending ? 'Membatalkan...' : 'Ya, Batalkan Pemesanan'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

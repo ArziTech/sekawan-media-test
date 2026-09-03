@@ -312,3 +312,21 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Mendaftarkan rute `/branch-dashboard/:id` di [`frontend/src/App.jsx`](frontend/src/App.jsx) dan menambahkan pencocokan judul breadcrumb di [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx).
 - Membuat dokumen rencana [`plans/halaman-detail-kantor-cabang.md`](plans/halaman-detail-kantor-cabang.md) serta memperbarui [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md) dan [`docs/README.md`](docs/README.md).
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] feat | Refactoring Seluruh Form UI (shadcn/ui + React Hook Form + Zod) & Server State (TanStack Query v5)
+
+- Menginstal dan mengintegrasikan `@tanstack/react-query`, `react-hook-form`, dan `@hookform/resolvers`.
+- Membangun komponen UI standar [`frontend/src/components/ui/form.jsx`](frontend/src/components/ui/form.jsx) (`Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`, `useFormField`) dan memperbarui [`frontend/src/components/ui/select.jsx`](frontend/src/components/ui/select.jsx) berbasis Radix UI.
+- Mengonfigurasi `QueryClientProvider` global pada [`frontend/src/App.jsx`](frontend/src/App.jsx).
+- Me-refactor seluruh modul dan formulir aplikasi dengan `useQuery`, `useMutation`, `useForm`, dan skema validasi Zod:
+  - **Login:** [`frontend/src/components/login-form.jsx`](frontend/src/components/login-form.jsx) (validasi format email & min. 6 karakter password).
+  - **Pemesanan Kendaraan:** [`frontend/src/pages/Bookings.jsx`](frontend/src/pages/Bookings.jsx) (validasi pemohon, asal/tujuan, armada, supir, tanggal, keperluan, approver L1 & L2, dan odometer akhir trip).
+  - **Master Kendaraan:** [`frontend/src/pages/Vehicles.jsx`](frontend/src/pages/Vehicles.jsx) (validasi nomor plat, tipe, kepemilikan, vendor sewa, status).
+  - **Master Supir:** [`frontend/src/pages/Drivers.jsx`](frontend/src/pages/Drivers.jsx) (validasi nama, nomor SIM, format telepon seluler, wilayah).
+  - **Log Konsumsi BBM:** [`frontend/src/pages/FuelLogs.jsx`](frontend/src/pages/FuelLogs.jsx) (validasi volume liter, harga per liter, total biaya, odometer).
+  - **Jadwal & Riwayat Servis:** [`frontend/src/pages/ServiceLogs.jsx`](frontend/src/pages/ServiceLogs.jsx) (validasi jenis servis, estimasi biaya, bengkel, odometer).
+  - **Manajemen User:** [`frontend/src/pages/UsersManagement.jsx`](frontend/src/pages/UsersManagement.jsx) (validasi user baru/edit, role, tier approver, jabatan, wilayah).
+  - **Portal Persetujuan:** [`frontend/src/pages/Approvals.jsx`](frontend/src/pages/Approvals.jsx) (validasi alasan penolakan dan pembatalan pemesanan).
+  - **Laporan & Ekspor:** [`frontend/src/pages/Reports.jsx`](frontend/src/pages/Reports.jsx) (parameter filter via TanStack Query dan dropdown shadcn Select).
+  - **Dashboard Monitoring:** [`frontend/src/pages/Dashboard.jsx`](frontend/src/pages/Dashboard.jsx), [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx), [`frontend/src/pages/BranchDetail.jsx`](frontend/src/pages/BranchDetail.jsx) (migrasi data fetching ke TanStack Query dan penggantian native select ke shadcn Select).
+- Seluruh pengujian build production Vite lulus tanpa error dan perubahan telah di-push ke branch `main`.

@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Truck, Plus, Search, Filter, Wrench, Fuel, MapPin, Building2, Edit2, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Truck, Plus, Search, Filter, Wrench, Fuel, MapPin, Building2, Edit2, Trash2, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -7,6 +11,29 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -16,86 +43,131 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { VehicleStatusBadge } from '@/components/common/StatusBadge';
+import { cn } from '@/lib/utils';
+
+const vehicleSchema = z.object({
+  name: z.string().min(2, 'Nama kendaraan minimal 2 karakter.'),
+  license_plate: z.string().min(3, 'Nomor plat nomor wajib diisi.'),
+  type: z.enum(['passenger', 'cargo']),
+  ownership_type: z.enum(['owned', 'rented']),
+  rental_company_id: z.string().optional(),
+  region_id: z.string().min(1, 'Wilayah pool wajib dipilih.'),
+  fuel_type: z.string().min(1, 'Jenis BBM wajib diisi.'),
+  current_odometer: z.coerce.number().min(0, 'Odometer tidak boleh negatif.'),
+  status: z.enum(['available', 'in_use', 'in_service']),
+});
 
 export const Vehicles = () => {
   const { isAdmin } = useAuth();
   const toast = useToast();
-
-  const [vehicles, setVehicles] = useState([]);
-  const [regions, setRegions] = useState([]);
-  const [rentalCompanies, setRentalCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // Filters
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [ownershipFilter, setOwnershipFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [ownershipFilter, setOwnershipFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deletingVehicle, setDeletingVehicle] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    license_plate: '',
-    type: 'passenger',
-    ownership_type: 'owned',
-    rental_company_id: '',
-    region_id: '',
-    fuel_type: 'Solar Dexlite',
-    current_odometer: 0,
-    status: 'available',
+  // TanStack Query: Master data
+  const { data: masterData = { regions: [], rental_companies: [] } } = useQuery({
+    queryKey: ['regions-master'],
+    queryFn: async () => {
+      const res = await api.get('/regions');
+      return res.data?.data || { regions: [], rental_companies: [] };
+    },
   });
 
-  const fetchVehicles = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/vehicles', {
-        params: {
-          search: search || undefined,
-          type: typeFilter || undefined,
-          ownership_type: ownershipFilter || undefined,
-          status: statusFilter || undefined,
-        },
-      });
-      if (res.data.success) {
-        setVehicles(res.data.data || []);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memuat data armada.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const regions = masterData.regions || [];
+  const rentalCompanies = masterData.rental_companies || [];
 
-  const fetchMaster = async () => {
-    try {
-      const res = await api.get('/regions');
-      if (res.data.success) {
-        setRegions(res.data.data.regions || []);
-        setRentalCompanies(res.data.data.rental_companies || []);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // TanStack Query: Vehicles list
+  const { data: vehicles = [], isLoading, refetch } = useQuery({
+    queryKey: ['vehicles', { search, typeFilter, ownershipFilter, statusFilter }],
+    queryFn: async () => {
+      const params = {};
+      if (search.trim()) params.search = search.trim();
+      if (typeFilter !== 'all') params.type = typeFilter;
+      if (ownershipFilter !== 'all') params.ownership_type = ownershipFilter;
+      if (statusFilter !== 'all') params.status = statusFilter;
+      const res = await api.get('/vehicles', { params });
+      return res.data?.data || [];
+    },
+  });
 
-  useEffect(() => {
-    fetchVehicles();
-    fetchMaster();
-  }, [typeFilter, ownershipFilter, statusFilter]);
-
-  const handleOpenAdd = () => {
-    setEditingVehicle(null);
-    setFormData({
+  // React Hook Form
+  const form = useForm({
+    resolver: zodResolver(vehicleSchema),
+    defaultValues: {
       name: '',
       license_plate: '',
       type: 'passenger',
       ownership_type: 'owned',
       rental_company_id: '',
-      region_id: regions[0]?.id || '',
+      region_id: '',
+      fuel_type: 'Solar Dexlite',
+      current_odometer: 0,
+      status: 'available',
+    },
+  });
+
+  const selectedOwnership = form.watch('ownership_type');
+
+  // Mutations
+  const saveMutation = useMutation({
+    mutationFn: async (values) => {
+      const payload = {
+        ...values,
+        region_id: parseInt(values.region_id),
+        rental_company_id: values.ownership_type === 'rented' && values.rental_company_id ? parseInt(values.rental_company_id) : null,
+      };
+
+      if (editingVehicle) {
+        return api.put(`/vehicles/${editingVehicle.id}`, payload);
+      } else {
+        return api.post('/vehicles', payload);
+      }
+    },
+    onSuccess: (res) => {
+      toast.success(res.data?.message || 'Data kendaraan berhasil disimpan.');
+      setIsModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Gagal menyimpan data kendaraan.');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      return api.delete(`/vehicles/${id}`);
+    },
+    onSuccess: (res) => {
+      toast.success(res.data?.message || 'Kendaraan berhasil dihapus.');
+      setIsDeleteOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Gagal menghapus kendaraan.');
+    },
+  });
+
+  const handleOpenAdd = () => {
+    setEditingVehicle(null);
+    form.reset({
+      name: '',
+      license_plate: '',
+      type: 'passenger',
+      ownership_type: 'owned',
+      rental_company_id: rentalCompanies[0] ? String(rentalCompanies[0].id) : '',
+      region_id: regions[0] ? String(regions[0].id) : '',
       fuel_type: 'Solar Dexlite',
       current_odometer: 0,
       status: 'available',
@@ -105,13 +177,13 @@ export const Vehicles = () => {
 
   const handleOpenEdit = (v) => {
     setEditingVehicle(v);
-    setFormData({
+    form.reset({
       name: v.name,
       license_plate: v.license_plate,
       type: v.type,
       ownership_type: v.ownership_type,
-      rental_company_id: v.rental_company_id || '',
-      region_id: v.region_id,
+      rental_company_id: v.rental_company_id ? String(v.rental_company_id) : '',
+      region_id: String(v.region_id),
       fuel_type: v.fuel_type,
       current_odometer: v.current_odometer,
       status: v.status,
@@ -119,315 +191,467 @@ export const Vehicles = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingVehicle) {
-        const res = await api.put(`/vehicles/${editingVehicle.id}`, formData);
-        if (res.data.success) toast.success(res.data.message);
-      } else {
-        const res = await api.post('/vehicles', formData);
-        if (res.data.success) toast.success(res.data.message);
-      }
-      setIsModalOpen(false);
-      fetchVehicles();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menyimpan data kendaraan.');
-    }
+  const handleOpenDelete = (v) => {
+    setDeletingVehicle(v);
+    setIsDeleteOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Hapus unit kendaraan ini dari armada?')) return;
-    try {
-      const res = await api.delete(`/vehicles/${id}`);
-      if (res.data.success) {
-        toast.success(res.data.message);
-        fetchVehicles();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menghapus kendaraan.');
-    }
+  const onSubmit = (values) => {
+    saveMutation.mutate(values);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Truck className="w-5 h-5 text-amber-500" />
-            Inventaris Armada Kendaraan
+            <Truck className="w-6 h-6 text-amber-500" />
+            Inventaris Armada Tambang
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manajemen unit angkutan orang & barang, status kepemilikan (milik sendiri & sewa), serta pelacakan odometer.
+            Manajemen armada operasional milik perusahaan dan unit sewaan di seluruh wilayah pool.
           </p>
         </div>
 
         {isAdmin && (
-          <Button onClick={handleOpenAdd} size="sm" className="font-bold text-xs gap-1.5 shadow-sm">
-            <Plus className="w-4 h-4" />
-            Tambah Kendaraan
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="text-xs gap-1.5 h-9"
+            >
+              <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
+              <span>Segarkan</span>
+            </Button>
+
+            <Button
+              onClick={handleOpenAdd}
+              size="sm"
+              className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Kendaraan</span>
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Filter Bar */}
-      <Card>
-        <CardContent className="p-3 flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px]">
+      {/* Filter Bar with shadcn Select & Input */}
+      <Card className="border-border/80 shadow-xs">
+        <CardContent className="p-4 flex flex-col md:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchVehicles()}
-              placeholder="Cari nama unit, plat nomor..."
+              placeholder="Cari armada, plat nomor, atau model..."
               className="pl-9 h-9 text-xs"
             />
           </div>
 
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-          >
-            <option value="">Semua Tipe</option>
-            <option value="passenger">Angkutan Orang</option>
-            <option value="cargo">Angkutan Barang</option>
-          </select>
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Filter Tipe */}
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full sm:w-36 h-9 text-xs">
+                <SelectValue placeholder="Semua Tipe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Tipe</SelectItem>
+                <SelectItem value="passenger">Penumpang</SelectItem>
+                <SelectItem value="cargo">Angkutan Barang</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <select
-            value={ownershipFilter}
-            onChange={(e) => setOwnershipFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-          >
-            <option value="">Semua Kepemilikan</option>
-            <option value="owned">Milik Sendiri</option>
-            <option value="rented">Sewa (Rental)</option>
-          </select>
+            {/* Filter Kepemilikan */}
+            <Select value={ownershipFilter} onValueChange={setOwnershipFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-9 text-xs">
+                <SelectValue placeholder="Semua Kepemilikan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kepemilikan</SelectItem>
+                <SelectItem value="owned">Milik Sendiri</SelectItem>
+                <SelectItem value="rented">Sewa (Rental)</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-          >
-            <option value="">Semua Status</option>
-            <option value="available">Tersedia</option>
-            <option value="in_use">Digunakan</option>
-            <option value="in_service">Dalam Servis</option>
-          </select>
+            {/* Filter Status */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-36 h-9 text-xs">
+                <SelectValue placeholder="Semua Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="available">Tersedia</SelectItem>
+                <SelectItem value="in_use">Digunakan</SelectItem>
+                <SelectItem value="in_service">Dalam Servis</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Vehicles Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading ? (
-          <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
-            <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
-            <p>Memuat armada...</p>
-          </div>
-        ) : vehicles.length === 0 ? (
-          <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
-            Tidak ada armada yang sesuai filter.
-          </div>
-        ) : (
-          vehicles.map((v) => (
-            <Card key={v.id} className="flex flex-col justify-between">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-muted border border-border/80 text-foreground">
-                    {v.license_plate}
-                  </span>
-                  <VehicleStatusBadge status={v.status} />
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">{v.name}</h3>
-                  <p className="text-[11px] text-muted-foreground">{v.region?.name}</p>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-muted-foreground pt-1 border-t border-border/60">
-                  <div className="flex items-center justify-between">
-                    <span>Tipe:</span>
-                    <span className="font-medium text-foreground">
-                      {v.type === 'passenger' ? 'Angkutan Orang' : 'Angkutan Barang'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Kepemilikan:</span>
-                    <span className={`font-medium ${v.ownership_type === 'owned' ? 'text-emerald-500' : 'text-cyan-500'}`}>
-                      {v.ownership_type === 'owned' ? 'Milik Perusahaan' : `Sewa (${v.rental_company?.name || 'Vendor'})`}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Odometer:</span>
-                    <span className="font-mono font-semibold text-foreground">
+      {/* Vehicles Table */}
+      <Card className="border-border/80 shadow-xs">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 text-[11px] uppercase font-bold tracking-wider">
+                <TableHead className="py-3 px-4">Kendaraan</TableHead>
+                <TableHead className="py-3 px-4">Tipe & BBM</TableHead>
+                <TableHead className="py-3 px-4">Kepemilikan</TableHead>
+                <TableHead className="py-3 px-4">Wilayah Pool</TableHead>
+                <TableHead className="py-3 px-4">Odometer</TableHead>
+                <TableHead className="py-3 px-4">Status</TableHead>
+                {isAdmin && <TableHead className="py-3 px-4 text-right">Aksi</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-border/60">
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={isAdmin ? 7 : 6} className="py-12 text-center text-muted-foreground text-xs">
+                    <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
+                    <p>Memuat inventaris armada...</p>
+                  </TableCell>
+                </TableRow>
+              ) : vehicles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={isAdmin ? 7 : 6} className="py-12 text-center text-muted-foreground text-xs">
+                    Tidak ada data kendaraan yang sesuai filter.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                vehicles.map((v) => (
+                  <TableRow key={v.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="py-3.5 px-4">
+                      <div className="font-bold text-foreground text-xs">{v.name}</div>
+                      <div className="font-mono text-[11px] text-amber-500 font-bold">{v.license_plate}</div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs">
+                      <div className="font-medium text-foreground">{v.type === 'passenger' ? 'Orang (Penumpang)' : 'Barang (Logistik)'}</div>
+                      <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <Fuel className="w-3 h-3 text-emerald-500" />
+                        {v.fuel_type}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs">
+                      <Badge variant="outline" className="text-[10px] uppercase font-bold">
+                        {v.ownership_type === 'owned' ? 'Milik Sendiri' : 'Sewa (Rental)'}
+                      </Badge>
+                      {v.rental_company && (
+                        <div className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
+                          <Building2 className="w-3 h-3 text-muted-foreground" />
+                          {v.rental_company.name}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs">
+                      <div className="font-medium text-foreground flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-rose-400 shrink-0" />
+                        {v.region?.name}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground font-mono">{v.region?.code}</div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs font-mono font-medium text-foreground">
                       {Number(v.current_odometer).toLocaleString('id-ID')} km
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Bahan Bakar:</span>
-                    <span className="text-amber-500 font-medium">{v.fuel_type}</span>
-                  </div>
-                </div>
-              </CardContent>
-
-              {isAdmin && (
-                <div className="p-4 pt-3 flex items-center justify-end gap-2 border-t border-border/80">
-                  <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(v)} className="h-8 px-2.5 text-xs">
-                    <Edit2 className="w-3.5 h-3.5 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} className="h-8 px-2.5 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10">
-                    <Trash2 className="w-3.5 h-3.5 mr-1" />
-                    Hapus
-                  </Button>
-                </div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4">
+                      <VehicleStatusBadge status={v.status} />
+                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-xs"
+                            onClick={() => handleOpenEdit(v)}
+                            title="Edit Kendaraan"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-xs"
+                            onClick={() => handleOpenDelete(v)}
+                            className="hover:border-rose-500/50 hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400"
+                            title="Hapus Kendaraan"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
               )}
-            </Card>
-          ))
-        )}
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Dialog: Add/Edit Vehicle */}
+      {/* Modal Form Tambah/Edit Kendaraan (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingVehicle ? 'Edit Data Kendaraan' : 'Tambah Armada Kendaraan Baru'}</DialogTitle>
-            <DialogDescription>Masukkan spesifikasi unit kendaraan tambang dan status penempatan.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-amber-500" />
+              {editingVehicle ? 'Edit Data Kendaraan' : 'Tambah Unit Kendaraan Baru'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingVehicle
+                ? `Perbarui spesifikasi dan status armada ${editingVehicle.name} (${editingVehicle.license_plate}).`
+                : 'Daftarkan unit kendaraan baru ke dalam sistem inventaris tambang.'}
+            </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Nama / Tipe Unit *</label>
-                <Input
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Toyota Hilux 4x4"
-                  className="h-9 text-xs"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Model Kendaraan *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Toyota Hilux 4x4 D-Cab" className="h-9 text-xs" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="license_plate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nomor Polisi / Plat *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="B 9101 NKL" className="h-9 text-xs font-mono uppercase" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Nomor Polisi (Plat) *</label>
-                <Input
-                  required
-                  value={formData.license_plate}
-                  onChange={(e) => setFormData({ ...formData, license_plate: e.target.value })}
-                  placeholder="B 9101 NKL"
-                  className="h-9 text-xs font-mono"
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipe Kendaraan *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Tipe" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="passenger">Orang (Penumpang)</SelectItem>
+                          <SelectItem value="cargo">Barang (Logistik Tambang)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="ownership_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kepemilikan *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Kepemilikan" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="owned">Milik Sendiri (Perusahaan)</SelectItem>
+                          <SelectItem value="rented">Sewa (Rental Eksternal)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Jenis Angkutan *</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-                >
-                  <option value="passenger">Angkutan Orang</option>
-                  <option value="cargo">Angkutan Barang</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Status Kepemilikan *</label>
-                <select
-                  value={formData.ownership_type}
-                  onChange={(e) => setFormData({ ...formData, ownership_type: e.target.value })}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-                >
-                  <option value="owned">Milik Perusahaan</option>
-                  <option value="rented">Sewa (Rental)</option>
-                </select>
-              </div>
-            </div>
+              {selectedOwnership === 'rented' && (
+                <FormField
+                  control={form.control}
+                  name="rental_company_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Perusahaan Penyedia Sewa (Vendor) *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Perusahaan Rental" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {rentalCompanies.map((rc) => (
+                            <SelectItem key={rc.id} value={String(rc.id)}>
+                              {rc.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
-            {formData.ownership_type === 'rented' && (
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Perusahaan Persewaan (Vendor) *</label>
-                <select
-                  required
-                  value={formData.rental_company_id}
-                  onChange={(e) => setFormData({ ...formData, rental_company_id: e.target.value })}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-                >
-                  <option value="">Pilih Vendor Rental</option>
-                  {rentalCompanies.map((rc) => (
-                    <option key={rc.id} value={rc.id}>
-                      {rc.name} ({rc.contact_person})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="region_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Wilayah Pool Penempatan *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Wilayah Pool" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {regions.map((r) => (
+                            <SelectItem key={r.id} value={String(r.id)}>
+                              {r.name} ({r.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Lokasi Penempatan *</label>
-                <select
-                  required
-                  value={formData.region_id}
-                  onChange={(e) => setFormData({ ...formData, region_id: e.target.value })}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-                >
-                  <option value="">Pilih Lokasi</option>
-                  {regions.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name} ({r.type})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Bahan Bakar *</label>
-                <Input
-                  required
-                  value={formData.fuel_type}
-                  onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
-                  placeholder="Solar Dexlite"
-                  className="h-9 text-xs"
+                <FormField
+                  control={form.control}
+                  name="fuel_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jenis Bahan Bakar *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Solar Dexlite" className="h-9 text-xs" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Odometer (KM)</label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={formData.current_odometer}
-                  onChange={(e) => setFormData({ ...formData, current_odometer: parseInt(e.target.value, 10) || 0 })}
-                  className="h-9 text-xs"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="current_odometer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Odometer Saat Ini (KM) *</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="0" placeholder="0" className="h-9 text-xs" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status Kesiapan *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="available">Tersedia (Ready)</SelectItem>
+                          <SelectItem value="in_use">Sedang Digunakan</SelectItem>
+                          <SelectItem value="in_service">Dalam Servis (Maintenance)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-                >
-                  <option value="available">Tersedia</option>
-                  <option value="in_use">Sedang Digunakan</option>
-                  <option value="in_service">Dalam Servis</option>
-                </select>
-              </div>
-            </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
-                Batal
-              </Button>
-              <Button type="submit" size="sm" className="font-bold text-xs">
-                Simpan
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saveMutation.isPending}
+                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {saveMutation.isPending ? 'Menyimpan...' : editingVehicle ? 'Simpan Perubahan' : 'Tambah Unit'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog: Konfirmasi Hapus */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-500">
+              <AlertTriangle className="w-5 h-5" />
+              Hapus Unit Kendaraan
+            </DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin menghapus <strong>{deletingVehicle?.name}</strong> ({deletingVehicle?.license_plate}) dari armada?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs space-y-1 text-rose-400">
+            <p className="font-bold">Peringatan:</p>
+            <p>Data kendaraan yang sedang memiliki jadwal pemesanan aktif tidak dapat dihapus.</p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDeleteOpen(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate(deletingVehicle.id)}
+              className="font-bold text-xs gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {deleteMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Kendaraan'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

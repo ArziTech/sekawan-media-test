@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -6,6 +10,21 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableHeader,
@@ -30,7 +49,6 @@ import {
   Trash2,
   Shield,
   ShieldCheck,
-  Building2,
   MapPin,
   CheckCircle2,
   AlertTriangle,
@@ -39,13 +57,21 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
+const userSchema = z.object({
+  name: z.string().min(3, 'Nama lengkap minimal 3 karakter.'),
+  email: z.string().min(1, 'Email login wajib diisi.').email('Format email tidak valid.'),
+  password: z.string().optional(),
+  role: z.enum(['admin', 'approver']),
+  approval_tier: z.string().optional(),
+  position: z.string().optional(),
+  region_id: z.string().min(1, 'Wilayah tugas wajib dipilih.'),
+});
+
 export function UsersManagement() {
   const { user: currentUser } = useAuth();
   const toast = useToast();
+  const queryClient = useQueryClient();
 
-  const [users, setUsers] = useState([]);
-  const [regions, setRegions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('all');
@@ -53,25 +79,24 @@ export function UsersManagement() {
   // Modal Form State (Create / Edit)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'approver',
-    approval_tier: '1',
-    position: '',
-    region_id: '',
-  });
-  const [submitting, setSubmitting] = useState(false);
 
   // Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState(null);
-  const [deleting, setDeleting] = useState(false);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
+  // TanStack Query: Fetch Regions
+  const { data: regions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: async () => {
+      const res = await api.get('/regions');
+      return res.data?.data?.regions || [];
+    },
+  });
+
+  // TanStack Query: Fetch Users
+  const { data: users = [], isLoading: loadingUsers, refetch: refetchUsers } = useQuery({
+    queryKey: ['users', { search, roleFilter, regionFilter }],
+    queryFn: async () => {
       let params = {};
       if (search.trim()) params.search = search.trim();
       if (roleFilter !== 'all') {
@@ -88,44 +113,79 @@ export function UsersManagement() {
       if (regionFilter !== 'all') {
         params.region_id = regionFilter;
       }
-
       const res = await api.get('/users', { params });
-      if (res.data?.success) {
-        setUsers(res.data.data.data || []);
+      return res.data?.data?.data || [];
+    },
+  });
+
+  // React Hook Form
+  const form = useForm({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      role: 'approver',
+      approval_tier: '1',
+      position: '',
+      region_id: '',
+    },
+  });
+
+  const selectedRole = form.watch('role');
+
+  // TanStack Query: Mutations
+  const saveMutation = useMutation({
+    mutationFn: async (values) => {
+      const payload = {
+        name: values.name.trim(),
+        email: values.email.trim(),
+        role: values.role,
+        approval_tier: values.role === 'approver' ? parseInt(values.approval_tier) : null,
+        position: values.position?.trim() || null,
+        region_id: parseInt(values.region_id),
+      };
+
+      if (values.password && values.password.trim()) {
+        payload.password = values.password.trim();
       }
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memuat daftar pengguna.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchRegions = async () => {
-    try {
-      const res = await api.get('/regions');
-      if (res.data?.success && res.data.data?.regions) {
-        setRegions(res.data.data.regions);
+      if (editingUser) {
+        return api.put(`/users/${editingUser.id}`, payload);
+      } else {
+        if (!payload.password) {
+          throw new Error('Kata sandi wajib diisi untuk pengguna baru.');
+        }
+        return api.post('/users', payload);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    },
+    onSuccess: (res) => {
+      toast.success(editingUser ? 'Data pengguna berhasil diperbarui.' : 'Pengguna baru berhasil ditambahkan.');
+      setIsFormModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || err.message || 'Gagal menyimpan data pengguna.');
+    },
+  });
 
-  useEffect(() => {
-    fetchRegions();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchUsers();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search, roleFilter, regionFilter]);
+  const deleteMutation = useMutation({
+    mutationFn: async (userId) => {
+      return api.delete(`/users/${userId}`);
+    },
+    onSuccess: (res) => {
+      toast.success(res.data?.message || 'Pengguna berhasil dihapus.');
+      setIsDeleteModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Gagal menghapus pengguna.');
+    },
+  });
 
   const handleOpenCreateModal = () => {
     setEditingUser(null);
-    setFormData({
+    form.reset({
       name: '',
       email: '',
       password: '',
@@ -139,7 +199,7 @@ export function UsersManagement() {
 
   const handleOpenEditModal = (u) => {
     setEditingUser(u);
-    setFormData({
+    form.reset({
       name: u.name,
       email: u.email,
       password: '',
@@ -151,82 +211,17 @@ export function UsersManagement() {
     setIsFormModalOpen(true);
   };
 
-  const handleSubmitForm = async (e) => {
-    e.preventDefault();
-
-    if (!formData.name.trim() || !formData.email.trim()) {
-      toast.error('Nama dan Email wajib diisi.');
-      return;
-    }
-
-    if (!editingUser && !formData.password.trim()) {
-      toast.error('Kata sandi wajib diisi untuk pengguna baru.');
-      return;
-    }
-
-    if (!formData.region_id) {
-      toast.error('Wilayah tugas wajib dipilih.');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const payload = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        role: formData.role,
-        approval_tier: formData.role === 'approver' ? parseInt(formData.approval_tier) : null,
-        position: formData.position.trim(),
-        region_id: parseInt(formData.region_id),
-      };
-
-      if (formData.password.trim()) {
-        payload.password = formData.password.trim();
-      }
-
-      if (editingUser) {
-        const res = await api.put(`/users/${editingUser.id}`, payload);
-        if (res.data?.success) {
-          toast.success('Data pengguna berhasil diperbarui.');
-          setIsFormModalOpen(false);
-          fetchUsers();
-        }
-      } else {
-        const res = await api.post('/users', payload);
-        if (res.data?.success) {
-          toast.success('Pengguna baru berhasil ditambahkan.');
-          setIsFormModalOpen(false);
-          fetchUsers();
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || 'Gagal menyimpan data pengguna.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleOpenDeleteModal = (u) => {
     setDeletingUser(u);
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deletingUser) return;
-    setDeleting(true);
-    try {
-      const res = await api.delete(`/users/${deletingUser.id}`);
-      if (res.data?.success) {
-        toast.success(res.data.message || 'Pengguna berhasil dihapus.');
-        setIsDeleteModalOpen(false);
-        fetchUsers();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menghapus pengguna.');
-    } finally {
-      setDeleting(false);
+  const onSubmitForm = (values) => {
+    if (!editingUser && (!values.password || values.password.length < 6)) {
+      form.setError('password', { message: 'Kata sandi minimal 6 karakter untuk pengguna baru.' });
+      return;
     }
+    saveMutation.mutate(values);
   };
 
   const getRoleBadge = (u) => {
@@ -273,11 +268,11 @@ export function UsersManagement() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={fetchUsers}
-            disabled={loading}
+            onClick={() => refetchUsers()}
+            disabled={loadingUsers}
             className="text-xs gap-1.5 h-9"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
+            <RefreshCw className={cn("w-3.5 h-3.5", loadingUsers && "animate-spin")} />
             <span>Segarkan</span>
           </Button>
 
@@ -292,7 +287,7 @@ export function UsersManagement() {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
+      {/* Filter & Search Bar with shadcn Select */}
       <Card className="border-border/80 shadow-xs">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-3 items-center">
@@ -308,30 +303,34 @@ export function UsersManagement() {
               />
             </div>
 
-            {/* Filter Role */}
+            {/* Filter Role (shadcn Select) */}
             <div className="flex items-center gap-2 w-full md:w-auto">
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground focus:ring-1 focus:ring-amber-500"
-              >
-                <option value="all">Semua Peran / Role</option>
-                <option value="admin">Administrator (Admin Pool)</option>
-                <option value="approver_1">Penyetujui Level 1 (Supervisor)</option>
-                <option value="approver_2">Penyetujui Level 2 (Kepala Pool/GM)</option>
-              </select>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-full md:w-56 h-9 text-xs">
+                  <SelectValue placeholder="Semua Peran / Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Peran / Role</SelectItem>
+                  <SelectItem value="admin">Administrator (Admin Pool)</SelectItem>
+                  <SelectItem value="approver_1">Penyetujui Level 1 (Supervisor)</SelectItem>
+                  <SelectItem value="approver_2">Penyetujui Level 2 (Kepala Pool/GM)</SelectItem>
+                </SelectContent>
+              </Select>
 
-              {/* Filter Region */}
-              <select
-                value={regionFilter}
-                onChange={(e) => setRegionFilter(e.target.value)}
-                className="h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground focus:ring-1 focus:ring-amber-500"
-              >
-                <option value="all">Semua Wilayah</option>
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>{r.name} ({r.code})</option>
-                ))}
-              </select>
+              {/* Filter Region (shadcn Select) */}
+              <Select value={regionFilter} onValueChange={setRegionFilter}>
+                <SelectTrigger className="w-full md:w-52 h-9 text-xs">
+                  <SelectValue placeholder="Semua Wilayah" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Wilayah</SelectItem>
+                  {regions.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>
+                      {r.name} ({r.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -352,7 +351,7 @@ export function UsersManagement() {
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-border/60">
-              {loading ? (
+              {loadingUsers ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
                     <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
@@ -437,7 +436,7 @@ export function UsersManagement() {
         </CardContent>
       </Card>
 
-      {/* Modal Form: Tambah / Edit Pengguna */}
+      {/* Modal Form: Tambah / Edit Pengguna (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -452,120 +451,185 @@ export function UsersManagement() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmitForm} className="space-y-4 text-xs">
-            {/* Nama Lengkap */}
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Nama Lengkap & Gelar *</label>
-              <Input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Contoh: Ir. Bambang Sutrisno, M.T."
-                className="text-xs h-9"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-4 text-xs">
+              {/* Nama Lengkap */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Lengkap & Gelar *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Contoh: Ir. Bambang Sutrisno, M.T."
+                        className="text-xs h-9"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Email Login */}
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Email Login *</label>
-              <Input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="Contoh: approver1@tambang.com"
-                className="text-xs h-9"
+              {/* Email Login */}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Login *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Contoh: approver1@tambang.com"
+                        className="text-xs h-9"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Kata Sandi */}
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">
-                Kata Sandi {editingUser ? '(Kosongkan jika tidak ingin mengubah)' : '*'}
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="password"
-                  required={!editingUser}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder={editingUser ? 'Minimal 6 karakter baru...' : 'Minimal 6 karakter...'}
-                  className="pl-9 text-xs h-9"
+              {/* Kata Sandi */}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Kata Sandi {editingUser ? '(Kosongkan jika tidak ingin mengubah)' : '*'}
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          type="password"
+                          placeholder={editingUser ? 'Minimal 6 karakter baru...' : 'Minimal 6 karakter...'}
+                          className="pl-9 text-xs h-9"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Grid: Role & Approval Tier (shadcn Select) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peran Sistem (Role) *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Peran" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="approver">Penyetujui (Approver)</SelectItem>
+                          <SelectItem value="admin">Administrator Pool</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
+
+                {selectedRole === 'approver' && (
+                  <FormField
+                    control={form.control}
+                    name="approval_tier"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tingkat Persetujuan (Tier) *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-9 text-xs">
+                              <SelectValue placeholder="Pilih Tingkat" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">Level 1 - Supervisor</SelectItem>
+                            <SelectItem value="2">Level 2 - Kepala Pool/GM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
-            </div>
 
-            {/* Grid: Role & Approval Tier */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="font-semibold text-foreground">Peran Sistem (Role) *</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground focus:ring-1 focus:ring-amber-500"
-                >
-                  <option value="approver">Penyetujui (Approver)</option>
-                  <option value="admin">Administrator Pool</option>
-                </select>
-              </div>
-
-              {formData.role === 'approver' && (
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Tingkat Persetujuan (Tier) *</label>
-                  <select
-                    value={formData.approval_tier}
-                    onChange={(e) => setFormData({ ...formData, approval_tier: e.target.value })}
-                    className="w-full h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground focus:ring-1 focus:ring-amber-500"
-                  >
-                    <option value="1">Level 1 - Supervisor Operasional</option>
-                    <option value="2">Level 2 - Kepala Pool / GM Tambang</option>
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* Jabatan Resmi */}
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Jabatan Resmi (Position)</label>
-              <Input
-                type="text"
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                placeholder="Contoh: Supervisor Operasional Lapangan"
-                className="text-xs h-9"
+              {/* Jabatan Resmi */}
+              <FormField
+                control={form.control}
+                name="position"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jabatan Resmi (Position)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Contoh: Supervisor Operasional Lapangan"
+                        className="text-xs h-9"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Wilayah Tugas */}
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Wilayah Penempatan / Tugas *</label>
-              <select
-                value={formData.region_id}
-                onChange={(e) => setFormData({ ...formData, region_id: e.target.value })}
-                className="w-full h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground focus:ring-1 focus:ring-amber-500"
-              >
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>{r.name} ({r.code})</option>
-                ))}
-              </select>
-            </div>
+              {/* Wilayah Tugas (shadcn Select) */}
+              <FormField
+                control={form.control}
+                name="region_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Wilayah Penempatan / Tugas *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue placeholder="Pilih Wilayah Penugasan" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {regions.map((r) => (
+                          <SelectItem key={r.id} value={String(r.id)}>
+                            {r.name} ({r.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsFormModalOpen(false)}>
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                {submitting ? 'Menyimpan...' : editingUser ? 'Simpan Perubahan' : 'Daftarkan User'}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsFormModalOpen(false)}>
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saveMutation.isPending}
+                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {saveMutation.isPending
+                    ? 'Menyimpan...'
+                    : editingUser
+                    ? 'Simpan Perubahan'
+                    : 'Daftarkan User'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -600,12 +664,12 @@ export function UsersManagement() {
               type="button"
               variant="destructive"
               size="sm"
-              disabled={deleting}
-              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate(deletingUser.id)}
               className="font-bold text-xs gap-1.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              {deleting ? 'Menghapus...' : 'Ya, Hapus Pengguna'}
+              {deleteMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Pengguna'}
             </Button>
           </DialogFooter>
         </DialogContent>

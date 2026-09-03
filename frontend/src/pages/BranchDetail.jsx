@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
@@ -65,9 +73,6 @@ export function BranchDetail() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
-  const [allRegions, setAllRegions] = useState([]);
   const [activeTab, setActiveTab] = useState('fleet-drivers');
 
   const currentMonthLabel = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
@@ -81,41 +86,26 @@ export function BranchDetail() {
     }).format(val || 0);
   };
 
-  const fetchDetail = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get(`/dashboard/regions/${id}`);
-      if (res.data?.success) {
-        setData(res.data.data);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memuat detail wilayah.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAllRegions = async () => {
-    try {
+  // TanStack Query: Fetch All Regions (for switcher)
+  const { data: allRegions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: async () => {
       const res = await api.get('/regions');
-      if (res.data?.success && res.data.data?.regions) {
-        setAllRegions(res.data.data.regions);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+      return res.data?.data?.regions || [];
+    },
+  });
 
-  useEffect(() => {
-    fetchAllRegions();
-  }, []);
+  // TanStack Query: Fetch Region Detail
+  const { data: regionData, isLoading: loading, refetch } = useQuery({
+    queryKey: ['region-detail', id],
+    queryFn: async () => {
+      const res = await api.get(`/dashboard/regions/${id}`);
+      return res.data?.data || null;
+    },
+    enabled: !!id,
+  });
 
-  useEffect(() => {
-    if (id) {
-      fetchDetail();
-    }
-  }, [id]);
+  const data = regionData;
 
   const getRegionTypeBadge = (type) => {
     switch (type) {
@@ -259,26 +249,27 @@ export function BranchDetail() {
           </div>
         </div>
 
-        {/* Quick Region Switcher Dropdown */}
+        {/* Quick Region Switcher Dropdown (shadcn Select) */}
         <div className="flex items-center gap-2 self-start md:self-auto">
           <span className="text-xs text-muted-foreground whitespace-nowrap">Pindah Wilayah:</span>
-          <select
-            value={id}
-            onChange={(e) => navigate(`/branch-dashboard/${e.target.value}`)}
-            className="h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground font-semibold focus:ring-1 focus:ring-amber-500"
-          >
-            {allRegions.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name} ({r.code})
-              </option>
-            ))}
-          </select>
+          <Select value={id} onValueChange={(val) => navigate(`/branch-dashboard/${val}`)}>
+            <SelectTrigger className="w-56 h-9 text-xs">
+              <SelectValue placeholder="Pilih Wilayah" />
+            </SelectTrigger>
+            <SelectContent>
+              {allRegions.map((r) => (
+                <SelectItem key={r.id} value={String(r.id)}>
+                  {r.name} ({r.code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={fetchDetail}
+            onClick={() => refetch()}
             className="h-9 text-xs gap-1"
             title="Segarkan data wilayah ini"
           >

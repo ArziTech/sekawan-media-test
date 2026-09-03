@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Plus, Search, Edit2, Trash2, Phone, CreditCard, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Users, Plus, Search, Edit2, Trash2, Phone, CreditCard, MapPin, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -7,6 +11,29 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -16,70 +43,111 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { DriverStatusBadge } from '@/components/common/StatusBadge';
+import { cn } from '@/lib/utils';
+
+const driverSchema = z.object({
+  name: z.string().min(2, 'Nama supir minimal 2 karakter.'),
+  phone: z.string().min(8, 'Nomor telepon minimal 8 digit.').regex(/^[0-9\-\+\s]+$/, 'Format nomor telepon tidak valid.'),
+  license_number: z.string().min(5, 'Nomor SIM minimal 5 karakter.'),
+  region_id: z.string().min(1, 'Wilayah penempatan wajib dipilih.'),
+  status: z.enum(['available', 'on_duty', 'off_duty']),
+});
 
 export const Drivers = () => {
   const { isAdmin } = useAuth();
   const toast = useToast();
+  const queryClient = useQueryClient();
 
-  const [drivers, setDrivers] = useState([]);
-  const [regions, setRegions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [regionFilter, setRegionFilter] = useState('all');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    license_number: '',
-    region_id: '',
-    status: 'available',
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deletingDriver, setDeletingDriver] = useState(null);
+
+  // TanStack Query: Fetch Regions
+  const { data: regions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: async () => {
+      const res = await api.get('/regions');
+      return res.data?.data?.regions || [];
+    },
   });
 
-  const fetchDrivers = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/drivers', {
-        params: {
-          search: search || undefined,
-          status: statusFilter || undefined,
-        },
-      });
-      if (res.data.success) {
-        setDrivers(res.data.data || []);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memuat daftar driver.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // TanStack Query: Fetch Drivers
+  const { data: drivers = [], isLoading, refetch } = useQuery({
+    queryKey: ['drivers', { search, statusFilter, regionFilter }],
+    queryFn: async () => {
+      const params = {};
+      if (search.trim()) params.search = search.trim();
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (regionFilter !== 'all') params.region_id = regionFilter;
+      const res = await api.get('/drivers', { params });
+      return res.data?.data || [];
+    },
+  });
 
-  const fetchRegions = async () => {
-    try {
-      const res = await api.get('/regions');
-      if (res.data.success) {
-        setRegions(res.data.data.regions || []);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    fetchDrivers();
-    fetchRegions();
-  }, [statusFilter]);
-
-  const handleOpenAdd = () => {
-    setEditingDriver(null);
-    setFormData({
+  // React Hook Form
+  const form = useForm({
+    resolver: zodResolver(driverSchema),
+    defaultValues: {
       name: '',
       phone: '',
       license_number: '',
-      region_id: regions[0]?.id || '',
+      region_id: '',
+      status: 'available',
+    },
+  });
+
+  // Mutations
+  const saveMutation = useMutation({
+    mutationFn: async (values) => {
+      const payload = {
+        ...values,
+        region_id: parseInt(values.region_id),
+      };
+
+      if (editingDriver) {
+        return api.put(`/drivers/${editingDriver.id}`, payload);
+      } else {
+        return api.post('/drivers', payload);
+      }
+    },
+    onSuccess: (res) => {
+      toast.success(res.data?.message || 'Data supir berhasil disimpan.');
+      setIsModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['drivers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Gagal menyimpan data supir.');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      return api.delete(`/drivers/${id}`);
+    },
+    onSuccess: (res) => {
+      toast.success(res.data?.message || 'Supir berhasil dihapus.');
+      setIsDeleteOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['drivers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Gagal menghapus supir.');
+    },
+  });
+
+  const handleOpenAdd = () => {
+    setEditingDriver(null);
+    form.reset({
+      name: '',
+      phone: '',
+      license_number: '',
+      region_id: regions[0] ? String(regions[0].id) : '',
       status: 'available',
     });
     setIsModalOpen(true);
@@ -87,232 +155,369 @@ export const Drivers = () => {
 
   const handleOpenEdit = (d) => {
     setEditingDriver(d);
-    setFormData({
+    form.reset({
       name: d.name,
       phone: d.phone,
-      license_number: d.license_number || '',
-      region_id: d.region_id,
+      license_number: d.license_number,
+      region_id: String(d.region_id),
       status: d.status,
     });
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingDriver) {
-        const res = await api.put(`/drivers/${editingDriver.id}`, formData);
-        if (res.data.success) toast.success(res.data.message);
-      } else {
-        const res = await api.post('/drivers', formData);
-        if (res.data.success) toast.success(res.data.message);
-      }
-      setIsModalOpen(false);
-      fetchDrivers();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menyimpan data driver.');
-    }
+  const handleOpenDelete = (d) => {
+    setDeletingDriver(d);
+    setIsDeleteOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Hapus supir ini dari daftar master?')) return;
-    try {
-      const res = await api.delete(`/drivers/${id}`);
-      if (res.data.success) {
-        toast.success(res.data.message);
-        fetchDrivers();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menghapus driver.');
-    }
+  const onSubmit = (values) => {
+    saveMutation.mutate(values);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Users className="w-5 h-5 text-amber-500" />
-            Master Data Driver (Supir Operasional)
+            <Users className="w-6 h-6 text-cyan-500" />
+            Master Personil Supir
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Personil supir operasional tambang untuk penugasan perjalanan dinas pool armada.
+            Daftar supir operasional tambang, lisensi mengemudi, dan penempatan wilayah pool.
           </p>
         </div>
 
         {isAdmin && (
-          <Button onClick={handleOpenAdd} size="sm" className="font-bold text-xs gap-1.5 shadow-sm">
-            <Plus className="w-4 h-4" />
-            Tambah Driver Baru
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="text-xs gap-1.5 h-9"
+            >
+              <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
+              <span>Segarkan</span>
+            </Button>
+
+            <Button
+              onClick={handleOpenAdd}
+              size="sm"
+              className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Supir</span>
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Filter Bar */}
-      <Card>
-        <CardContent className="p-3 flex items-center gap-3">
-          <div className="relative flex-1">
+      {/* Filter Bar with shadcn Select & Input */}
+      <Card className="border-border/80 shadow-xs">
+        <CardContent className="p-4 flex flex-col md:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchDrivers()}
-              placeholder="Cari nama driver, no. SIM, telepon..."
+              placeholder="Cari supir, nomor SIM, atau nomor HP..."
               className="pl-9 h-9 text-xs"
             />
           </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-          >
-            <option value="">Semua Status</option>
-            <option value="available">Siap Bertugas</option>
-            <option value="on_duty">Sedang Bertugas</option>
-            <option value="off">Off / Libur</option>
-          </select>
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Filter Status (shadcn Select) */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-9 text-xs">
+                <SelectValue placeholder="Semua Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="available">Tersedia (Siap)</SelectItem>
+                <SelectItem value="on_duty">Sedang Bertugas</SelectItem>
+                <SelectItem value="off_duty">Off Duty</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filter Wilayah (shadcn Select) */}
+            <Select value={regionFilter} onValueChange={setRegionFilter}>
+              <SelectTrigger className="w-full sm:w-52 h-9 text-xs">
+                <SelectValue placeholder="Semua Wilayah" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Wilayah</SelectItem>
+                {regions.map((r) => (
+                  <SelectItem key={r.id} value={String(r.id)}>
+                    {r.name} ({r.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Drivers Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {loading ? (
-          <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
-            <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
-            <p>Memuat data driver...</p>
-          </div>
-        ) : drivers.length === 0 ? (
-          <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
-            Tidak ada data driver yang cocok.
-          </div>
-        ) : (
-          drivers.map((d) => (
-            <Card key={d.id} className="flex flex-col justify-between">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center font-bold text-xs">
-                    {d.name.charAt(0)}
-                  </div>
-                  <DriverStatusBadge status={d.status} />
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">{d.name}</h3>
-                  <p className="text-[11px] text-muted-foreground">{d.region?.name}</p>
-                </div>
-
-                <div className="space-y-1 text-xs text-muted-foreground pt-1 border-t border-border/60">
-                  <div className="flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span>{d.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span>{d.license_number || 'SIM -'}</span>
-                  </div>
-                </div>
-              </CardContent>
-
-              {isAdmin && (
-                <div className="p-4 pt-3 flex items-center justify-end gap-2 border-t border-border/80">
-                  <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(d)} className="h-8 px-2.5 text-xs">
-                    <Edit2 className="w-3.5 h-3.5 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="h-8 px-2.5 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10">
-                    <Trash2 className="w-3.5 h-3.5 mr-1" />
-                    Hapus
-                  </Button>
-                </div>
+      {/* Drivers Table */}
+      <Card className="border-border/80 shadow-xs">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 text-[11px] uppercase font-bold tracking-wider">
+                <TableHead className="py-3 px-4">Nama Personil</TableHead>
+                <TableHead className="py-3 px-4">Nomor SIM</TableHead>
+                <TableHead className="py-3 px-4">Kontak Telepon</TableHead>
+                <TableHead className="py-3 px-4">Wilayah Tugas</TableHead>
+                <TableHead className="py-3 px-4">Status</TableHead>
+                {isAdmin && <TableHead className="py-3 px-4 text-right">Aksi</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-border/60">
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={isAdmin ? 6 : 5} className="py-12 text-center text-muted-foreground text-xs">
+                    <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
+                    <p>Memuat personil supir...</p>
+                  </TableCell>
+                </TableRow>
+              ) : drivers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={isAdmin ? 6 : 5} className="py-12 text-center text-muted-foreground text-xs">
+                    Tidak ada data supir yang cocok dengan pencarian.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                drivers.map((d) => (
+                  <TableRow key={d.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="py-3.5 px-4">
+                      <div className="font-bold text-foreground text-xs">{d.name}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono">ID: #{d.id}</div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs font-mono">
+                      <div className="flex items-center gap-1.5 text-foreground">
+                        <CreditCard className="w-3.5 h-3.5 text-amber-500" />
+                        <span>{d.license_number}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs font-mono">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>{d.phone}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs">
+                      <div className="font-medium text-foreground flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-rose-400 shrink-0" />
+                        {d.region?.name}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground font-mono">{d.region?.code}</div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4">
+                      <DriverStatusBadge status={d.status} />
+                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-xs"
+                            onClick={() => handleOpenEdit(d)}
+                            title="Edit Data Supir"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-xs"
+                            onClick={() => handleOpenDelete(d)}
+                            className="hover:border-rose-500/50 hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400"
+                            title="Hapus Supir"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
               )}
-            </Card>
-          ))
-        )}
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Dialog: Add/Edit Driver */}
+      {/* Modal Form Tambah/Edit Supir (React Hook Form + Zod + shadcn Form) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingDriver ? 'Edit Data Supir' : 'Tambah Supir Baru'}</DialogTitle>
-            <DialogDescription>Masukkan identitas dan penempatan lokasi operasional supir.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-cyan-500" />
+              {editingDriver ? 'Edit Data Supir' : 'Tambah Personil Supir Baru'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingDriver
+                ? `Perbarui informasi personil supir ${editingDriver.name}.`
+                : 'Daftarkan personil supir operasional baru ke sistem pool tambang.'}
+            </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Nama Lengkap *</label>
-              <Input
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Budi Santoso"
-                className="h-9 text-xs"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 text-xs">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Lengkap Supir *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Contoh: Budi Santoso" className="h-9 text-xs" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">No. Handphone / WA *</label>
-              <Input
-                required
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="0812-xxxx-xxxx"
-                className="h-9 text-xs"
-              />
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="license_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nomor SIM BII Umum *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="SIM-99887766" className="h-9 text-xs font-mono uppercase" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Nomor SIM</label>
-              <Input
-                value={formData.license_number}
-                onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                placeholder="SIM-BII-881290"
-                className="h-9 text-xs font-mono"
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nomor Telepon / WA *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="0812-3456-7890" className="h-9 text-xs font-mono" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Lokasi Penempatan *</label>
-              <select
-                required
-                value={formData.region_id}
-                onChange={(e) => setFormData({ ...formData, region_id: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-              >
-                <option value="">Pilih Lokasi</option>
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="region_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Wilayah Tugas *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Wilayah" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {regions.map((r) => (
+                            <SelectItem key={r.id} value={String(r.id)}>
+                              {r.name} ({r.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="space-y-1">
-              <label className="font-semibold text-foreground">Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
-              >
-                <option value="available">Siap Bertugas</option>
-                <option value="on_duty">Sedang Bertugas</option>
-                <option value="off">Off / Libur</option>
-              </select>
-            </div>
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status Kesiapan *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Pilih Status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="available">Tersedia (Siap)</SelectItem>
+                          <SelectItem value="on_duty">Sedang Bertugas</SelectItem>
+                          <SelectItem value="off_duty">Off Duty</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
-                Batal
-              </Button>
-              <Button type="submit" size="sm" className="font-bold text-xs">
-                Simpan
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saveMutation.isPending}
+                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {saveMutation.isPending ? 'Menyimpan...' : editingDriver ? 'Simpan Perubahan' : 'Daftarkan Supir'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog: Konfirmasi Hapus */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-500">
+              <AlertTriangle className="w-5 h-5" />
+              Hapus Data Supir
+            </DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin menghapus data supir <strong>{deletingDriver?.name}</strong> ({deletingDriver?.license_number})?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs space-y-1 text-rose-400">
+            <p className="font-bold">Peringatan:</p>
+            <p>Supir yang sedang menjalankan tugas perjalanan aktif tidak dapat dihapus.</p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDeleteOpen(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate(deletingDriver.id)}
+              className="font-bold text-xs gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {deleteMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Supir'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,9 +1,20 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './components/theme-provider';
 import { AppLayout } from './components/layout/AppLayout';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 minutes cache
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/Login';
@@ -44,85 +55,87 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="nickel-fleet-theme">
-      <ToastProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark" storageKey="nickel-fleet-theme">
+        <ToastProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
 
-              {/* Authenticated routes wrapped in AppLayout */}
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <AppLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/branch-dashboard" element={<BranchDashboard />} />
-                <Route path="/branch-dashboard/:id" element={<BranchDetail />} />
-                <Route path="/bookings" element={<Bookings />} />
-                <Route path="/approvals" element={<Approvals />} />
+                {/* Authenticated routes wrapped in AppLayout */}
                 <Route
-                  path="/vehicles"
                   element={
-                    <ProtectedRoute adminOnly>
-                      <Vehicles />
+                    <ProtectedRoute>
+                      <AppLayout />
                     </ProtectedRoute>
                   }
-                />
-                <Route
-                  path="/drivers"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <Drivers />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/fuel-logs"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <FuelLogs />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/service-logs"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <ServiceLogs />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/reports" element={<Reports />} />
-                <Route
-                  path="/activity-logs"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <ActivityLogs />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/users"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <UsersManagement />
-                    </ProtectedRoute>
-                  }
-                />
-              </Route>
+                >
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/branch-dashboard" element={<BranchDashboard />} />
+                  <Route path="/branch-dashboard/:id" element={<BranchDetail />} />
+                  <Route path="/bookings" element={<Bookings />} />
+                  <Route path="/approvals" element={<Approvals />} />
+                  <Route
+                    path="/vehicles"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <Vehicles />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/drivers"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <Drivers />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/fuel-logs"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <FuelLogs />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/service-logs"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <ServiceLogs />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route
+                    path="/activity-logs"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <ActivityLogs />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <UsersManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </ToastProvider>
-    </ThemeProvider>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

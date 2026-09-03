@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { useAuth } from '@/context/AuthContext';
 import {
-  ShieldCheck,
   LogIn,
   Lock,
   Mail,
   MapPin,
-  Truck,
   AlertCircle,
-  HelpCircle,
-  Check,
-  Copy,
-  ArrowLeft,
-  UserCheck,
   Info,
   X,
 } from 'lucide-react';
@@ -26,14 +29,25 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Alamat email wajib diisi.').email('Format alamat email tidak valid.'),
+  password: z.string().min(6, 'Kata sandi minimal 6 karakter.'),
+});
+
 export function LoginForm({ className, ...props }) {
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
-  const [copiedAccount, setCopiedAccount] = useState(null);
+
+  const form = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
   const demoAccounts = [
     {
@@ -75,33 +89,25 @@ export function LoginForm({ className, ...props }) {
   ];
 
   const handleSelectAccount = (acc) => {
-    setEmail(acc.email);
-    setPassword(acc.password);
+    form.setValue('email', acc.email, { shouldValidate: true });
+    form.setValue('password', acc.password, { shouldValidate: true });
     setShowDemoModal(false);
   };
 
-  const handleCopyCredentials = (acc, e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(`Email: ${acc.email} | Password: ${acc.password}`);
-    setCopiedAccount(acc.email);
-    setTimeout(() => setCopiedAccount(null), 2000);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (values) => {
     setSubmitting(true);
-    await login(email, password);
+    await login(values.email, values.password);
     setSubmitting(false);
   };
 
   return (
     <div className={cn("flex flex-col gap-6 relative", className)} {...props}>
-      <Card className=" p-0 border-border/80 shadow-2xl">
+      <Card className="p-0 border-border/80 shadow-2xl">
         <CardContent className="grid p-0 md:grid-cols-2">
           {/* Left: Login Form */}
-          <form onSubmit={handleSubmit} className="p-6 md:p-10 flex flex-col justify-between">
+          <div className="p-6 md:p-10 flex flex-col justify-between">
             <div className="space-y-6">
-              {/* Header with Demo Credentials Info Button */}
+              {/* Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-slate-950 font-bold text-lg shadow-sm">
@@ -116,8 +122,6 @@ export function LoginForm({ className, ...props }) {
                     </span>
                   </div>
                 </div>
-
-
               </div>
 
               <div className="space-y-1.5">
@@ -126,56 +130,65 @@ export function LoginForm({ className, ...props }) {
                 </h1>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="email"
-                    className="text-xs font-semibold text-foreground/90 uppercase tracking-wider flex items-center gap-1.5"
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Field Email */}
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase tracking-wider flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                          Alamat Email
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="nama@tambang.com"
+                            className="h-10 text-xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Field Password */}
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase tracking-wider flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                          Kata Sandi
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            className="h-10 text-xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full h-11 text-xs font-bold uppercase tracking-wider gap-2 shadow-sm"
                   >
-                    <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                    Alamat Email
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    required
-                    placeholder="nama@tambang.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-10 text-xs"
-                  />
-                </div>
+                    <LogIn className="w-4 h-4" />
+                    {submitting ? 'Memverifikasi...' : 'Masuk ke Sistem'}
+                  </Button>
+                </form>
+              </Form>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="password"
-                      className="text-xs font-semibold text-foreground/90 uppercase tracking-wider flex items-center gap-1.5"
-                    >
-                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                      Kata Sandi
-                    </label>
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-10 text-xs"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full h-11 text-xs font-bold uppercase tracking-wider gap-2 shadow-sm "
-                >
-                  <LogIn className="w-4 h-4" />
-                  {submitting ? 'Memverifikasi...' : 'Masuk ke Sistem'}
-                </Button>
-              </div>
               {/* Info '!' Demo Credentials Trigger with Tooltip Preview */}
               <Tooltip>
                 <TooltipTrigger
@@ -217,8 +230,7 @@ export function LoginForm({ className, ...props }) {
                 </TooltipContent>
               </Tooltip>
             </div>
-
-          </form>
+          </div>
 
           {/* Right: Operational Showcase Panel */}
           <div className="relative hidden md:flex flex-col justify-between p-8 bg-zinc-900 text-zinc-100 border-l border-border/60">
@@ -255,7 +267,7 @@ export function LoginForm({ className, ...props }) {
         </CardContent>
       </Card>
 
-      {/* ─── Modal / Popover: Demo Credentials & Disclaimer ───────────────── */}
+      {/* ─── Modal: Demo Credentials ───────────────────────────────────────── */}
       {showDemoModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in-0">
           <div className="bg-card border border-border/90 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 text-foreground">
@@ -294,17 +306,16 @@ export function LoginForm({ className, ...props }) {
                       <Badge className={acc.badgeColor}>{acc.badge}</Badge>
                       <span className="text-xs font-bold text-foreground">{acc.name}</span>
                     </div>
-                    {/* <p className="text-[11px] text-muted-foreground line-clamp-1">{acc.desc}</p> */}
                     <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
                       <span>Email: <strong className="text-foreground">{acc.email}</strong></span>
                       <span>&middot;</span>
                       <span>Pass: <strong className="text-foreground">{acc.password}</strong></span>
                     </div>
                   </div>
-
                 </div>
               ))}
             </div>
+
             {/* Disclaimer Box */}
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-500 leading-relaxed space-y-1">
               <span className="font-bold flex items-center gap-1.5">
@@ -312,10 +323,9 @@ export function LoginForm({ className, ...props }) {
                 Disclaimer:
               </span>
               <p className="text-[11px] text-amber-500/90">
-                Informasi kredensial kredensial ini hanya untuk tujuan demo aplikasi.
+                Informasi kredensial ini disediakan khusus untuk keperluan pengujian dan demonstrasi sistem.
               </p>
             </div>
-
 
             {/* Footer */}
             <div className="border-t border-border/60 pt-3 flex items-center justify-between text-xs text-muted-foreground">

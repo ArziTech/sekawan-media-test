@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,32 +46,17 @@ ChartJS.register(
 export function BranchDashboard() {
   const navigate = useNavigate();
   const toast = useToast();
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [overviewData, setOverviewData] = useState(null);
 
-  const fetchOverview = async () => {
-    try {
+  const { data: overviewData, isLoading: loading, refetch, isRefetching } = useQuery({
+    queryKey: ['regions-overview'],
+    queryFn: async () => {
       const res = await api.get('/dashboard/regions');
-      if (res.data?.success && res.data.data) {
-        setOverviewData(res.data.data);
-      }
-    } catch (err) {
-      console.error("Gagal mengambil ringkasan wilayah:", err);
-      toast.error("Gagal memuat data wilayah operasional.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOverview();
-  }, []);
+      return res.data?.data || null;
+    },
+  });
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchOverview();
-    setRefreshing(false);
+    await refetch();
     toast.success("Data monitoring wilayah berhasil diperbarui.");
   };
 
