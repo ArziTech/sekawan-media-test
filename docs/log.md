@@ -301,3 +301,14 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - Mengubah tampilan angka Rupiah yang ambigu menjadi kotak metrik berlabel jelas: `Biaya BBM (September 2026): Rp X.XXX.XXX` disertai ikon BBM `Fuel`.
   - Menampilkan periode waktu dinamis bulan berjalan (`currentMonthLabel`) baik pada kartu wilayah, grafik batang distribusi pengeluaran, maupun header tabel rekapitulasi 8 wilayah.
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] feat | Implementasi Halaman Detail Monitoring Kantor Cabang & Site Tambang
+
+- Membuat halaman baru [`frontend/src/pages/BranchDetail.jsx`](frontend/src/pages/BranchDetail.jsx) yang menampilkan:
+  - Header dengan tombol kembali, nama wilayah, badge kategori, kode & alamat, serta dropdown *Quick Region Switcher*.
+  - 4 Kartu KPI Summary: Kesiapan Armada Pool, Personil Supir, Arus Perjalanan Aktif (Outgoing & Incoming), dan Beban Biaya BBM Bulan Berjalan.
+  - 4 Tab Analitik Mendalam (*Fleet & Drivers*, *Active & Recent Trips*, *Fuel & Maintenance Logs*, dan *Top Destinations Analytics* dengan grafik batang Chart.js).
+- Menambahkan tombol navigasi **"Lihat Detail Wilayah →"** pada setiap kartu wilayah dan tabel rekapitulasi di [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx).
+- Mendaftarkan rute `/branch-dashboard/:id` di [`frontend/src/App.jsx`](frontend/src/App.jsx) dan menambahkan pencocokan judul breadcrumb di [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx).
+- Membuat dokumen rencana [`plans/halaman-detail-kantor-cabang.md`](plans/halaman-detail-kantor-cabang.md) serta memperbarui [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md) dan [`docs/README.md`](docs/README.md).
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.

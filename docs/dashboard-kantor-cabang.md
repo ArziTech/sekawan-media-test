@@ -4,8 +4,10 @@
 
 **Terkait:**
 - [`plans/dashboard-kantor-cabang.md`](../plans/dashboard-kantor-cabang.md)
+- [`plans/halaman-detail-kantor-cabang.md`](../plans/halaman-detail-kantor-cabang.md)
 - [`backend/app/Http/Controllers/Api/DashboardController.php`](../backend/app/Http/Controllers/Api/DashboardController.php)
 - [`frontend/src/pages/BranchDashboard.jsx`](../frontend/src/pages/BranchDashboard.jsx)
+- [`frontend/src/pages/BranchDetail.jsx`](../frontend/src/pages/BranchDetail.jsx)
 - [`docs/arsitektur-aplikasi.md`](./arsitektur-aplikasi.md)
 - [`docs/panduan-penggunaan.md`](./panduan-penggunaan.md)
 
@@ -73,3 +75,14 @@ Mengembalikan data lengkap untuk 1 wilayah spesifik.
 - **Auth:** `Bearer <Sanctum Token>`
 - **Parameters:** `id` (ID Region)
 - **Response Data:** `region`, `stats`, `vehicles`, `drivers`, `active_outgoing`, `active_incoming`, `recent_completed`, `fuel_logs`, `service_logs`, `top_destinations`.
+
+---
+
+## 4. Halaman Detail Wilayah Operasional (`/branch-dashboard/:id`)
+
+Halaman `BranchDetail.jsx` menyediakan analitik mendalam (*deep-dive*) dengan 4 tab komprehensif:
+1. **Tab Armada & Supir:** Inventaris kendaraan lengkap (odometer, plat, status) dan master personil supir lokal.
+2. **Tab Arus Perjalanan:** Trip Keluar Aktif (*Outgoing*), Trip Masuk Aktif (*Incoming*), dan riwayat 10 perjalanan selesai terakhir.
+3. **Tab BBM & Servis:** 10 log pengisian bahan bakar terakhir dan jadwal/riwayat servis armada.
+4. **Tab Analitik Destinasi:** Grafik frekuensi dan peringkat rute tujuan yang paling sering dikunjungi dari wilayah ini.
+- Dilengkapi **Quick Switcher** untuk berpindah antar wilayah kantor pusat, cabang, maupun 6 site tambang tanpa kembali ke halaman index.

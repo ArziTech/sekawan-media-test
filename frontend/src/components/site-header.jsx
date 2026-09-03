@@ -17,6 +17,10 @@ export function SiteHeader() {
   const location = useLocation();
 
   const getPageTitle = (pathname) => {
+    if (pathname.startsWith('/branch-dashboard/')) {
+      return 'Detail Monitoring Wilayah Operasional';
+    }
+
     switch (pathname) {
       case '/':
       case '/dashboard':

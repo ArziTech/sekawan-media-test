@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ import {
   Layers,
   CheckCircle2,
   Compass,
+  ArrowRight,
 } from "lucide-react";
 import {
   Chart as ChartJS,
@@ -41,6 +43,7 @@ ChartJS.register(
 );
 
 export function BranchDashboard() {
+  const navigate = useNavigate();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -220,6 +223,20 @@ export function BranchDashboard() {
             </span>
             <span className="font-semibold text-foreground">{reg.trips.active_outgoing} Trip</span>
           </div>
+        </div>
+
+        {/* Tombol Lihat Detail */}
+        <div className="pt-1 border-t border-border/50 flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            onClick={() => navigate(`/branch-dashboard/${reg.id}`)}
+            className="text-[11px] font-semibold text-muted-foreground hover:text-amber-500 gap-1 h-7 px-2 hover:bg-amber-500/10"
+          >
+            <span>Lihat Detail Wilayah</span>
+            <ArrowRight className="w-3 h-3" />
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -420,10 +437,22 @@ export function BranchDashboard() {
                         <div className="text-[10px] text-muted-foreground">{r.fuel.monthly_liters.toLocaleString('id-ID')} Liter</div>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          Aktif
-                        </Badge>
+                        <div className="flex items-center justify-end gap-2">
+                          <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Aktif
+                          </Badge>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="xs"
+                            onClick={() => navigate(`/branch-dashboard/${r.id}`)}
+                            className="text-[11px] font-semibold gap-1 h-7 px-2 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30"
+                          >
+                            <span>Detail</span>
+                            <ArrowRight className="w-2.5 h-2.5" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

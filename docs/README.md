@@ -20,6 +20,7 @@ Indeks per topik untuk `docs/*.md`. Satu file = satu topik (lihat aturan dokumen
 
 ## Rencana Implementasi
 
+- **[plans/halaman-detail-kantor-cabang.md](../plans/halaman-detail-kantor-cabang.md)** = Dokumen rencana implementasi halaman detail monitoring kantor cabang dan site tambang.
 - **[plans/manajemen-user-crud.md](../plans/manajemen-user-crud.md)** = Dokumen rencana implementasi manajemen CRUD pengguna dan otorisasi.
 - **[plans/perbaikan-hak-akses-role-approver.md](../plans/perbaikan-hak-akses-role-approver.md)** = Dokumen rencana perbaikan pembatasan hak akses rute frontend dan backend (RBAC) Admin vs Approver.
 - **[plans/dashboard-kantor-cabang.md](../plans/dashboard-kantor-cabang.md)** = Dokumen rencana implementasi dashboard monitoring kantor cabang dan site tambang.
