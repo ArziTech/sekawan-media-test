@@ -50,4 +50,4 @@ php artisan route:cache
 php artisan view:cache
 
 echo "[*] Aplikasi berjalan pada http://0.0.0.0:8000"
-exec php artisan serve --host=0.0.0.0 --port=8000
+exec php artisan serve --host=0.0.0.0 --port=8000 --no-reload
