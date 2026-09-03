@@ -51,7 +51,7 @@ class DutyController extends Controller
             $bookingBaseQuery->where(function ($q) use ($search) {
                 $q->where('booking_code', 'like', "%{$search}%")
                   ->orWhere('requester_name', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('requester_department', 'like', "%{$search}%")
                   ->orWhere('purpose', 'like', "%{$search}%")
                   ->orWhereHas('vehicle', function ($vq) use ($search) {
                       $vq->where('name', 'like', "%{$search}%")

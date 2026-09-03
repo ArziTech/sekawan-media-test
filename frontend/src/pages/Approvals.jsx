@@ -331,7 +331,7 @@ export const Approvals = () => {
                           <TableCell className="py-3.5 px-4 text-xs">
                             <div className="font-mono font-bold text-amber-500">{b.booking_code}</div>
                             <div className="font-bold text-foreground mt-0.5">{b.requester_name}</div>
-                            <div className="text-[10px] text-muted-foreground">{b.department}</div>
+                            <div className="text-[10px] text-muted-foreground">{b.requester_department || b.department}</div>
                           </TableCell>
                           <TableCell className="py-3.5 px-4 text-xs">
                             <div className="font-bold text-foreground flex items-center gap-1">
@@ -444,7 +444,7 @@ export const Approvals = () => {
                           </TableCell>
                           <TableCell className="py-3.5 px-4 text-xs">
                             <div className="font-bold text-foreground">{b.requester_name}</div>
-                            <div className="text-[10px] text-muted-foreground">{b.department}</div>
+                            <div className="text-[10px] text-muted-foreground">{b.requester_department || b.department}</div>
                           </TableCell>
                           <TableCell className="py-3.5 px-4 text-xs">
                             <div className="font-semibold text-foreground">{b.vehicle?.name}</div>

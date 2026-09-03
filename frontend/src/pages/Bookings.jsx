@@ -166,6 +166,7 @@ export const Bookings = () => {
     mutationFn: async (values) => {
       const payload = {
         requester_name: values.requester_name.trim(),
+        requester_department: values.requester_department.trim(),
         department: values.requester_department.trim(),
         region_id: parseInt(values.region_id),
         destination_region_id: parseInt(values.destination_region_id),
@@ -390,7 +391,7 @@ export const Bookings = () => {
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-xs">
                       <div className="font-bold text-foreground">{b.requester_name}</div>
-                      <div className="text-[10px] text-muted-foreground">{b.department}</div>
+                      <div className="text-[10px] text-muted-foreground">{b.requester_department || b.department}</div>
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-xs">
                       <div className="font-bold text-foreground flex items-center gap-1">
@@ -830,7 +831,7 @@ export const Bookings = () => {
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[11px]">Divisi / Departemen</span>
-                  <span className="font-bold text-foreground">{selectedBooking.department}</span>
+                  <span className="font-bold text-foreground">{selectedBooking.requester_department || selectedBooking.department}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[11px]">Armada Kendaraan</span>

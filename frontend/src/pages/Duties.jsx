@@ -540,7 +540,7 @@ export function Duties() {
                             Pemohon Tugas Dinas
                           </span>
                           <div className="font-bold text-foreground text-xs">{duty.requester_name}</div>
-                          <div className="text-[10px] text-muted-foreground">{duty.department}</div>
+                          <div className="text-[10px] text-muted-foreground">{duty.requester_department || duty.department}</div>
                         </div>
                       </div>
 
@@ -665,7 +665,7 @@ export function Duties() {
                         </TableCell>
                         <TableCell className="py-3.5 px-4 text-xs">
                           <div className="font-bold text-foreground">{duty.requester_name}</div>
-                          <div className="text-[10px] text-muted-foreground">{duty.department}</div>
+                          <div className="text-[10px] text-muted-foreground">{duty.requester_department || duty.department}</div>
                         </TableCell>
                         <TableCell className="py-3.5 px-4 text-xs">
                           <div className="font-bold text-foreground">{duty.vehicle?.name}</div>
@@ -824,7 +824,7 @@ export function Duties() {
                           </TableCell>
                           <TableCell className="py-3.5 px-4 text-xs">
                             <div className="font-bold text-foreground">{duty.driver?.name || 'Lepas Kunci'}</div>
-                            <div className="text-[10px] text-muted-foreground">{duty.requester_name} ({duty.department})</div>
+                            <div className="text-[10px] text-muted-foreground">{duty.requester_name} ({duty.requester_department || duty.department})</div>
                           </TableCell>
                           <TableCell className="py-3.5 px-4 text-xs">
                             <div className="font-bold text-foreground">{duty.vehicle?.name}</div>
@@ -1079,7 +1079,7 @@ export function Duties() {
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[11px]">Divisi / Departemen</span>
-                  <span className="font-bold text-foreground">{selectedBooking.department}</span>
+                  <span className="font-bold text-foreground">{selectedBooking.requester_department || selectedBooking.department}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[11px]">Armada Kendaraan</span>

@@ -91,6 +91,10 @@ class BookingController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if (!$request->has('requester_department') && $request->has('department')) {
+            $request->merge(['requester_department' => $request->department]);
+        }
+
         $validated = $request->validate([
             'requester_name' => 'required|string|max:255',
             'requester_department' => 'required|string|max:255',
