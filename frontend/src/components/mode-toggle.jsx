@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 
 export function ModeToggle({ className }) {
   const { theme, setTheme } = useTheme();
@@ -15,14 +16,20 @@ export function ModeToggle({ className }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        type="button"
-        className={`inline-flex items-center justify-center size-8 rounded-lg border border-border/80 bg-background hover:bg-muted text-foreground transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring ${className || ''}`}
-        title="Ubah Tema Tampilan (Light / Dark / System)"
-      >
-        <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
-        <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
-        <span className="sr-only">Toggle theme</span>
-      </DropdownMenuTrigger>
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            className={cn("rounded-lg relative border-border/80 bg-background hover:bg-muted text-foreground transition-all cursor-pointer", className)}
+            title="Ubah Tema Tampilan (Light / Dark / System)"
+          >
+            <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+            <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-36 rounded-xl p-1 bg-popover border border-border shadow-lg z-50">
         <DropdownMenuItem
           onClick={() => setTheme("light")}

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
@@ -43,12 +44,15 @@ export const ToastProvider = ({ children }) => {
             {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />}
             {toast.type === 'info' && <Info className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />}
             <div className="flex-1 text-sm font-medium leading-relaxed">{toast.message}</div>
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
               onClick={() => removeToast(toast.id)}
               className="text-slate-400 hover:text-white transition-colors"
             >
               <X className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         ))}
       </div>
