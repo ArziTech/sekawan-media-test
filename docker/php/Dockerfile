@@ -20,12 +20,11 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/backend
 
-# Copy composer definition & install dependencies
-COPY backend/composer.json backend/composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
 # Copy backend application source (including pre-built frontend in public/)
 COPY backend/ ./
+
+# Install composer dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Copy entrypoint script
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
