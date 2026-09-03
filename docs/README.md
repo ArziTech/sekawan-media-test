@@ -13,12 +13,15 @@ Indeks per topik untuk `docs/*.md`. Satu file = satu topik (lihat aturan dokumen
 - **[alur-persetujuan-berjenjang.md](./alur-persetujuan-berjenjang.md)** = Alur kerja persetujuan berjenjang sekuensial (Level 1 $\rightarrow$ Level 2) dan state machine.
 - **[skema-basis-data.md](./skema-basis-data.md)** = Dokumentasi skema 10 tabel basis data MySQL, tipe data, dan relasi Eloquent ORM.
 - **[dashboard-kantor-cabang.md](./dashboard-kantor-cabang.md)** = Dashboard monitoring kantor cabang, kantor pusat, dan 6 wilayah tambang nikel terdistribusi.
+- **[manajemen-user.md](./manajemen-user.md)** = Manajemen master akun pengguna (Admin & Approver Level 1 / 2), wewenang peran, dan penugasan wilayah.
 - **[panduan-penggunaan.md](./panduan-penggunaan.md)** = Panduan operasional aplikasi, alur booking, otorisasi approval, monitoring BBM/servis, export Excel, dan audit log.
 
 ---
 
 ## Rencana Implementasi
 
+- **[plans/manajemen-user-crud.md](../plans/manajemen-user-crud.md)** = Dokumen rencana implementasi manajemen CRUD pengguna dan otorisasi.
+- **[plans/perbaikan-hak-akses-role-approver.md](../plans/perbaikan-hak-akses-role-approver.md)** = Dokumen rencana perbaikan pembatasan hak akses rute frontend dan backend (RBAC) Admin vs Approver.
 - **[plans/dashboard-kantor-cabang.md](../plans/dashboard-kantor-cabang.md)** = Dokumen rencana implementasi dashboard monitoring kantor cabang dan site tambang.
 - **[plans/landing-page-dan-login-enhancement.md](../plans/landing-page-dan-login-enhancement.md)** = Dokumen rencana implementasi landing page publik dan login enhancement.
 - **[plans/aplikasi-pemesanan-monitoring-kendaraan.md](../plans/aplikasi-pemesanan-monitoring-kendaraan.md)** = Dokumen rencana master spesifikasi sistem, skema basis data, dan tahapan implementasi.

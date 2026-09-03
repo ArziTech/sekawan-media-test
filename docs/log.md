@@ -259,3 +259,30 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - Tombol *Setujui (Approve)* dan *Tolak (Reject)* hanya aktif bagi akun **Approver Level 1** (`approver1@tambang.com`) atau **Approver Level 2** (`approver2@tambang.com`) sesuai tahapan persetujuan.
 - Memperbarui dokumentasi di [`docs/alur-persetujuan-berjenjang.md`](docs/alur-persetujuan-berjenjang.md).
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Perbaikan Pembatasan Hak Akses Berbasis Peran (RBAC) Approver vs Admin
+
+- **Frontend (`frontend/src/App.jsx`)**:
+  - Menambahkan parameter `adminOnly` pada komponen `ProtectedRoute` yang memeriksa status `isAdmin` dari `AuthContext`.
+  - Mengunci seluruh rute khusus admin (`/vehicles`, `/drivers`, `/fuel-logs`, `/service-logs`, `/activity-logs`) sehingga jika akun non-admin (Approver) mencoba mengakses via URL langsung, akan otomatis dialihkan (*redirect*) ke `/dashboard`.
+- **Frontend Dashboard (`frontend/src/pages/Dashboard.jsx`)**:
+  - Mengondisikan link *"Lihat Semua"* pada kartu *Jadwal Servis Terdekat* (`/service-logs`) agar hanya tampil untuk pengguna dengan peran Admin.
+- **Backend Middleware & Routing (`backend/bootstrap/app.php` & `backend/routes/api.php`)**:
+  - Mendaftarkan middleware alias `'admin' => \App\Http\Middleware\EnsureAdmin::class` dan `'approver' => \App\Http\Middleware\EnsureApprover::class` pada `bootstrap/app.php`.
+  - Melindungi rute-rute khusus admin (`/vehicles`, `/drivers`, `/fuel-logs`, `/service-logs`, `/activity-logs`, dan aksi mutasi booking) dengan middleware `admin` (`403 Forbidden` jika diakses oleh akun approver).
+- **Pengujian & Verifikasi**:
+  - Menambahkan uji verifikasi RBAC 7 langkah pada [`backend/tests/e2e_verification.php`](backend/tests/e2e_verification.php) dengan hasil semua pengujian lulus 100%.
+  - Kompilasi build frontend sukses tanpa galat.
+- **Dokumentasi Terkait**:
+  - Membuat rencana perbaikan [`plans/perbaikan-hak-akses-role-approver.md`](plans/perbaikan-hak-akses-role-approver.md).
+  - Memperbarui matriks otorisasi RBAC pada [`docs/arsitektur-aplikasi.md`](docs/arsitektur-aplikasi.md) dan indeks [`docs/README.md`](docs/README.md).
+
+
+## [2026-09-03] feat | Implementasi Halaman CRUD Manajemen Pengguna & Otorisasi
+
+- Membuat controller backend [`backend/app/Http/Controllers/Api/UserController.php`](backend/app/Http/Controllers/Api/UserController.php) untuk melayani operasi CRUD pengguna lengkap (`index`, `store`, `show`, `update`, `destroy`) dengan proteksi penghapusan akun sendiri/transaksi aktif serta pencatatan audit log otomatis.
+- Mendaftarkan rute API `apiResource('/users', UserController::class)` di [`backend/routes/api.php`](backend/routes/api.php) di bawah middleware `admin`.
+- Membuat halaman antarmuka baru [`frontend/src/pages/UsersManagement.jsx`](frontend/src/pages/UsersManagement.jsx) dengan fitur pencarian real-time, filter peran/wilayah, modal form pendaftaran/pembaruan user, dan modal konfirmasi hapus.
+- Mendaftarkan rute `/users` di [`frontend/src/App.jsx`](frontend/src/App.jsx), menambahkan menu navigasi **"Manajemen User"** di [`frontend/src/components/app-sidebar.jsx`](frontend/src/components/app-sidebar.jsx), serta judul breadcrumb di [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx).
+- Membuat dokumentasi lengkap [`docs/manajemen-user.md`](docs/manajemen-user.md) dan memperbarui indeks [`docs/README.md`](docs/README.md).
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.

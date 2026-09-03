@@ -22,6 +22,7 @@ import {
   Users,
   Fuel,
   Wrench,
+  UserCog,
   FileSpreadsheet,
   Activity,
   Layers,
@@ -92,6 +93,11 @@ export function AppSidebar({ ...props }) {
           title: "Jadwal & Servis",
           url: "/service-logs",
           icon: Wrench,
+        },
+        {
+          title: "Manajemen User",
+          url: "/users",
+          icon: UserCog,
         },
       ]
     : [];

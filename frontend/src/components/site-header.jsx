@@ -39,6 +39,8 @@ export function SiteHeader() {
         return 'Laporan & Export Excel';
       case '/activity-logs':
         return 'Log Aktivitas (Audit Trail)';
+      case '/users':
+        return 'Manajemen Pengguna & Otorisasi';
       default:
         return 'Sistem Armada Tambang';
     }

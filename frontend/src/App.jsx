@@ -17,9 +17,10 @@ import { FuelLogs } from './pages/FuelLogs';
 import { ServiceLogs } from './pages/ServiceLogs';
 import { Reports } from './pages/Reports';
 import { ActivityLogs } from './pages/ActivityLogs';
+import { UsersManagement } from './pages/UsersManagement';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, adminOnly = false }) => {
+  const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -31,6 +32,10 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -59,12 +64,55 @@ export default function App() {
                 <Route path="/branch-dashboard" element={<BranchDashboard />} />
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/approvals" element={<Approvals />} />
-                <Route path="/vehicles" element={<Vehicles />} />
-                <Route path="/drivers" element={<Drivers />} />
-                <Route path="/fuel-logs" element={<FuelLogs />} />
-                <Route path="/service-logs" element={<ServiceLogs />} />
+                <Route
+                  path="/vehicles"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <Vehicles />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/drivers"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <Drivers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/fuel-logs"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <FuelLogs />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/service-logs"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <ServiceLogs />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/reports" element={<Reports />} />
-                <Route path="/activity-logs" element={<ActivityLogs />} />
+                <Route
+                  path="/activity-logs"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <ActivityLogs />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/users"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <UsersManagement />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
 
               {/* Fallback */}
