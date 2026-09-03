@@ -1,0 +1,229 @@
+# Documentation Log
+
+Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
+
+## [2026-09-03] ingest | Inisialisasi Perencanaan & Arsitektur Sistem Tambang Nikel
+
+- **Dokumen Dibuat:**
+  - `plans/aplikasi-pemesanan-monitoring-kendaraan.md`: Rencana komprehensif implementasi sistem pemesanan kendaraan (Laravel 13.x REST API + React.js SPA).
+  - `docs/arsitektur-aplikasi.md`: Arsitektur teknis decoupled SPA, RBAC 2 role, dan workflow multi-level approval 2 level.
+  - `docs/README.md`: Pembaruan indeks wiki topik dokumentasi.
+- **Tujuan / Konteks:** Menyusun dokumen arsitektur dan spesifikasi kebutuhan untuk sistem pemesanan dan monitoring kendaraan operasional tambang nikel (1 Kantor Pusat, 1 Cabang, 6 Tambang) sesuai ketentuan di `AGENTS.md`.
+
+## [2026-09-03] update | Breakdown Langkah Implementasi Laravel 13.x & React SPA
+
+- **Dokumen Diperbarui:** `plans/aplikasi-pemesanan-monitoring-kendaraan.md`.
+- **Perubahan:** Menambahkan rincian breakdown 5 tahap implementasi: Scaffolding, Database/Migrations/Seeders, Backend REST API & Approval Engine, Frontend React UI/UX, dan Verifikasi/README.
+
+## [2026-09-03] update | Pembuatan 5 Rencana Kerja Mandiri di folder plans/
+
+- **Dokumen Dibuat & Diperbarui:**
+  - `plans/01-setup-lingkungan-dan-scaffolding.md`: Rencana Setup Lingkungan, Containerization & Scaffolding.
+  - `plans/02-database-migrations-dan-seeders.md`: Rencana Pemodelan Database, 10 Migrasi Tabel & Seeders.
+  - `plans/03-backend-api-dan-approval-engine.md`: Rencana Backend API Laravel 13.x & Approval Engine.
+  - `plans/04-frontend-react-spa-ui-ux.md`: Rencana Frontend React.js SPA & Visual Charts.
+  - `plans/05-testing-dokumentasi-dan-verifikasi.md`: Rencana Testing E2E & Dokumentasi README.md.
+  - `plans/aplikasi-pemesanan-monitoring-kendaraan.md`: Diperbarui sebagai Master Plan Index yang menghubungkan kelima rencana.
+
+## [2026-09-03] ingest | Sinkronisasi Dokumentasi Teknologi via Context7 MCP
+
+- **Teknologi yang Disinkronkan:**
+  - **Laravel 13.x:** Struktur routing modern `bootstrap/app.php`, middleware alias & grouping, API routes, Eloquent relationships & foreign key constraints.
+  - **React.js & React Router (v6/v7):** Declarative routing (`<BrowserRouter>`, `<Routes>`, `<Route>`, `<Outlet>`), Context API auth guards, and SPA lifecycle.
+  - **Chart.js:** Registration modules (`CategoryScale`, `LinearScale`, `BarElement`, `LineElement`, `ArcElement`, `PointElement`), dataset styling, and responsive layout configuration.
+- **Tujuan:** Memastikan implementasi kode menggunakan standar dan API terbaru sesuai dokumentasi resmi framework/library.
+
+## [2026-09-03] update | Selesai Eksekusi Plan 01 (Setup & Scaffolding)
+
+- **Komponen Selesai:**
+  - Inisialisasi Backend **Laravel 13.x REST API** (Sanctum, CORS, PhpSpreadsheet).
+  - Inisialisasi Frontend **React.js SPA** (Vite, React 19, Tailwind CSS v4, Lucide Icons, Chart.js, Axios, React Router).
+  - Konfigurasi Containerization **Docker Compose** (PHP 8.2-FPM Alpine dengan pdo_mysql & gd, MySQL 8.0, Nginx).
+
+## [2026-09-03] update | Selesai Eksekusi Plan 02 (Database Migrations & Seeders)
+
+- **Komponen Selesai:**
+  - Migrasi 10 tabel database: `regions`, `rental_companies`, `vehicles`, `drivers`, `users`, `bookings`, `booking_approvals`, `fuel_logs`, `service_logs`, `activity_logs`.
+  - 10 Eloquent Models dengan relasi dan type-casting lengkap.
+  - DatabaseSeeder yang memuat 1 Kantor Pusat, 1 Kantor Cabang, 6 Tambang Nikel, 16 Kendaraan (Milik & Sewa, Orang & Barang), 8 Supir, Akun Admin & Approver Level 1 & 2, Sample Pemesanan berbagai status, Log BBM, dan Servis.
+
+## [2026-09-03] update | Selesai Eksekusi Plan 03 (Backend REST API & Multi-Level Approval Engine)
+
+- **Komponen Selesai:**
+  - `ActivityLogger` Service untuk audit trail otomatis seluruh proses transaksi.
+  - `AuthController`: login, profil `me`, logout, dan `demoUsers` untuk quick role switcher.
+  - `BookingController`: CRUD pemesanan, ketersediaan armada/driver, start trip & complete trip (dengan pencatatan odometer).
+  - `ApprovalController`: Alur sekuensial Level 1 (Atasan) $\rightarrow$ Level 2 (Kepala Pool/GM) dengan status tracking, catatan, dan audit log.
+  - `VehicleController` & `DriverController`: Manajemen armada dan master supir operasional.
+  - `FuelLogController` & `ServiceLogController`: Pencatatan konsumsi bahan bakar dan jadwal/riwayat servis.
+  - `DashboardController`: Agregasi metrik KPI, grafik pemakaian kendaraan, rasio armada, dan tren konsumsi BBM bulanan.
+  - `ReportController`: Filter dinamis laporan periodik dan generator spreadsheet Excel (.xlsx) dengan formula rekapitulasi.
+  - `ActivityLogController`: Audit trail viewer dengan payload data.
+  - 41 REST API routes terdaftar dan terverifikasi di Laravel 13.x.
+
+## [2026-09-03] update | Selesai Eksekusi Plan 04 (Frontend React.js SPA & UI/UX)
+
+- **Komponen Selesai:**
+  - `AuthContext` & `ToastContext` untuk manajemen sesi autentikasi dan notifikasi global.
+  - `AppLayout`, `Sidebar` dinamis per role, dan `Navbar` dengan Quick Demo Account Switcher.
+  - Halaman `Login`: Antarmuka modern dengan tombol 1-klik login akun demo (Admin, Approver 1, Approver 2).
+  - Halaman `Dashboard`: 4 KPI Cards, 3 Grafik Interaktif Chart.js (Frekuensi Pemakaian Kendaraan, Komposisi Armada, Tren BBM), dan ringkasan pesanan & servis terdekat.
+  - Halaman `Bookings`: Form pemesanan modal, dropdown armada/driver/approver L1 & L2, modal timeline persetujuan, start trip, dan complete trip (input odometer akhir).
+  - Halaman `Approvals`: Portal khusus persetujuan berjenjang dengan modal Setujui / Tolak dan catatan alasan.
+  - Halaman `Vehicles`, `Drivers`, `FuelLogs`, `ServiceLogs`: Manajemen inventaris armada, supir, log BBM, dan jadwal servis.
+  - Halaman `Reports`: Filter tanggal/region/status dan tombol **Export ke Excel (.xlsx)**.
+  - Halaman `ActivityLogs`: Audit trail viewer dengan modal detail JSON payload.
+
+## [2026-09-03] update | Selesai Eksekusi Plan 05 (Testing E2E, Dokumentasi README.md & Verifikasi)
+
+- **Komponen Selesai:**
+  - Script pengujian otomatis `backend/tests/e2e_verification.php` mengeksekusi seluruh 6 skenario bisnis (User & Role check, 8 Regions, Armada Milik/Sewa, Alur Sequential Approval Level 1 -> Level 2 -> Start Trip -> Complete Trip, Log BBM & Servis, dan Activity Log) dengan status **100% Passed**.
+  - Pembuatan file dokumentasi komprehensif **`README.md`** di root repository yang memuat:
+    - Spesifikasi versi teknologi (Laravel 13.x, PHP 8.2+, React 19, MySQL 8.0, Tailwind CSS v4, Chart.js).
+    - Tabel kredensial default untuk seluruh role (Admin, Approver Level 1, Approver Level 2).
+    - Panduan menjalankan sistem (Docker Compose 1-command & Standalone).
+    - Rincian alur kerja persetujuan berjenjang, grafik analitik dashboard, export Excel, dan audit trail.
+  - Script helper `start.sh` dan production build frontend React di `frontend/dist/`.
+
+## [2026-09-03] update | Integrasi shadcn/ui & Push ke Cloud Repository GitHub
+
+- **Komponen Selesai:**
+  - Pemasangan library komponen UI **shadcn/ui** (`Button`, `Card`, `Badge`, `Dialog`, `Input`, `Textarea`, `Table`, `cn` utility) berbasis Radix UI dan Tailwind CSS.
+  - Kompilasi build frontend terverifikasi sukses (`vite build` selesai tanpa error).
+  - Inisialisasi Git tracking (memastikan `docs/`, `plans/`, `archive/`, `archived/`, dan `AGENTS.md` tetap diabaikan di `.gitignore`).
+  - Remote cloud repository ditambahkan: `git@github.com:ArziTech/sekawan-media-test.git`.
+  - Berhasil melakukan `git commit` dan `git push -u origin main` ke branch `main`.
+
+## [2026-09-03] lint | Audit & Pemutakhiran Menyeluruh Wiki Dokumentasi docs/
+
+- **Hasil Audit & Pembaruan:**
+  - Pembuatan dokumen topik mandiri baru: `docs/alur-persetujuan-berjenjang.md`, `docs/skema-basis-data.md`, dan `docs/panduan-penggunaan.md`.
+  - Semua dokumen topik memiliki header timestamp standar (`Dibuat`/`Diperbarui`/`Status`).
+  - Semua dokumen topik memiliki bagian `Terkait:` yang menautkan silang ke dokumen wiki lain dan file kode relevan.
+  - Indeks `docs/README.md` diperbarui memuat seluruh 4 halaman wiki topik aktif.
+  - Tidak ada halaman yatim (*orphan page*) atau link rusak. Seluruh klaim teknis selaras dengan kode implementasi Laravel 13.x REST API dan React 19 SPA.
+
+## [2026-09-03] update | Perbaikan Kompatibilitas Versi PHP Container Docker (PHP 8.4-FPM Alpine)
+
+- **Masalah:** Laravel 13.x membutuhkan runtime PHP versi $\ge$ 8.4.1. Image dasar sebelumnya `php:8.2-fpm-alpine` menyebabkan kegagalan platform check Composer saat `artisan migrate:fresh`.
+- **Solusi:**
+  - Memperbarui `docker/php/Dockerfile` menggunakan image `php:8.4-fpm-alpine`.
+  - Menambahkan environment `DB_CONNECTION: mysql` pada `docker-compose.yml`.
+  - Melakukan rebuild container dan verifikasi migrasi database serta seeder (`docker compose exec app php artisan migrate:fresh --seed` selesai dengan status sukses).
+  - Push pembaruan ke cloud repository GitHub.
+
+## [2026-09-03] update | Redesign UI Frontend dengan Preset Shadcn/ui b5fybI, dashboard-01 & login-04
+
+- **Pembaruan & Perubahan Desain:**
+  - Menginisialisasi ulang sistem komponen **shadcn/ui** dengan preset resmi `b5fybI` dan template Vite.
+  - Memasang dan mengintegrasikan blok arsitektur:
+    - `login-04`: Halaman login enterprise dengan panel informasi operasional tambang (tanpa tombol OAuth pihak ketiga).
+    - `dashboard-01`: Layout sidebar navigasi cerdas (`SidebarProvider`, `AppSidebar`, `SidebarTrigger`, `SiteHeader`, `Breadcrumb`, `NavMain`, `NavUser`).
+  - Menghapus fitur dropdown switcher akun demo pada navbar sesuai arahan (sesi otentikasi login murni).
+  - Menerapkan prinsip desain `frontend-design` (menghindari *AI slop*, tipografi Inter Variable yang tajam, palet warna industri tambang dengan aksen amber/safety gold dan cobalt, struktur data tabular berkepadatan tinggi).
+  - Memutakhirkan seluruh halaman (`Dashboard`, `Bookings`, `Approvals`, `Vehicles`, `Drivers`, `FuelLogs`, `ServiceLogs`, `Reports`, `ActivityLogs`) menggunakan komponen murni shadcn (`Card`, `Table`, `Dialog`, `Badge`, `Button`, `Input`, `Textarea`, `Tabs`, `Separator`).
+  - Verifikasi build frontend berhasil (`vite build` sukses tanpa error) dan perubahan telah di-push ke cloud repository GitHub.
+
+## [2026-09-03] update | Mengubah Layout Konten Aplikasi Menjadi Full-Width
+
+- Menghapus pembatas `max-w-7xl` dan `mx-auto` pada kontainer `<main>` di `frontend/src/components/layout/AppLayout.jsx`.
+- Konten dashboard, tabel pemesanan, armada, dan laporan kini mengisi seluruh lebar layar secara proporsional (*fluid full width layout*).
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] update | Menambahkan Tombol Logout Eksplisit & Indikator User pada Header
+
+- Menambahkan tombol aksi **"Keluar"** (`LogOut`) yang jelas di pojok kanan atas `frontend/src/components/site-header.jsx`.
+- Menampilkan pill ringkasan identitas pengguna aktif (nama & peran/jabatan) di sebelah tombol logout.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Perbaikan Warna Solid Tombol Setujui & Penyesuaian Jarak (Padding) Garis Pemisah
+
+- Menambahkan varian warna solid `emerald` (`bg-emerald-600 text-white hover:bg-emerald-500`) dan `destructive` solid pada `frontend/src/components/ui/button.jsx` agar tombol **Setujui (Approve)** dan **Tolak (Reject)** memiliki latar belakang solid berbobot jelas (tidak transparan).
+- Memperbaiki padding pada footer kartu persetujuan (`pt-3` menggantikan `pt-0`) pada `frontend/src/pages/Approvals.jsx`, `Vehicles.jsx`, dan `Drivers.jsx` sehingga terdapat jarak *space* yang proporsional dan elegan antara tombol dan garis pemisah `border-t`.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] update | Menempatkan Tombol Logout Langsung di Footer Sidebar
+
+- Memindahkan tombol aksi **Logout / Keluar** ke bagian footer sidebar tepat di samping kartu nama pengguna ([`frontend/src/components/nav-user.jsx`](frontend/src/components/nav-user.jsx)).
+- Membersihkan header atas ([`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx)) agar tetap minimalis dan fokus pada breadcrumbs navigasi & info wilayah.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Perbaikan Centering Icon dan Margin Kanan pada Mode Collapsed Sidebar
+
+- Menyesuaikan lebar sidebar mode ikon (`SIDEBAR_WIDTH_ICON` menjadi `3.5rem` / 56px) pada `frontend/src/components/ui/sidebar.jsx` agar memberikan jarak (*gutter/padding*) yang proporsional di kedua sisi (kiri & kanan).
+- Memperbaiki penataan logo tambang, item menu navigasi ([`frontend/src/components/nav-main.jsx`](frontend/src/components/nav-main.jsx)), dan avatar profil pengguna ([`frontend/src/components/nav-user.jsx`](frontend/src/components/nav-user.jsx)) dengan class `mx-auto` / `justify-center` sehingga seluruh ikon terpusat rapi dan tidak lagi menabrak garis tepi kanan saat sidebar ditutup/di-minimize.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Perbaikan Perataan Horizontal Ikon pada Tombol Header Dashboard
+
+- Menghapus pembungkus ganda `<Button asChild>` yang menyebabkan tag `<a>` di dalam `<button>` terpecah baris secara vertikal pada tombol **"Keluar Pemesanan"** di [`frontend/src/pages/Dashboard.jsx`](frontend/src/pages/Dashboard.jsx).
+- Menerapkan helper `buttonVariants` langsung pada komponen `<Link>` dengan flexbox `inline-flex items-center gap-1.5`, sehingga ikon kalender dan teks tersusun presisi dalam satu baris horizontal seimbang.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Perbaikan Logika Popup Profil & Tombol Logout pada Footer Sidebar
+
+- Mengubah seluruh baris kartu pengguna di footer sidebar ([`frontend/src/components/nav-user.jsx`](frontend/src/components/nav-user.jsx)) menjadi pemicu tunggal (`DropdownMenuTrigger`) dengan ikon indikator `ChevronsUpDown`.
+- Menghapus tombol ikon logout terpisah di sebelah kanan nama agar tidak berdesakan dan mencegah terjadinya reload/refresh halaman yang tidak diinginkan.
+- Ketika kartu nama pengguna diklik, aplikasi akan memunculkan menu popup elegan (*dropdown popover*) berisi ringkasan avatar, nama, email, jabatan pengguna, serta tombol aksi **"Keluar (Log Out)"**.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] feat | Implementasi Fitur Dark Mode (Tema Gelap / Terang / Sistem OS)
+
+- Membuat context `ThemeProvider` dan hook `useTheme` ([`frontend/src/components/theme-provider.jsx`](frontend/src/components/theme-provider.jsx)) dengan persistensi `localStorage` (`nickel-fleet-theme`).
+- Membuat komponen tombol pengalih tema `ModeToggle` ([`frontend/src/components/mode-toggle.jsx`](frontend/src/components/mode-toggle.jsx)) dengan transisi ikon Sun/Moon yang halus dan opsi **Terang (Light)**, **Gelap (Dark)**, serta **Sistem OS**.
+- Memasang tombol `ModeToggle` pada navbar header aplikasi ([`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx)) dan pojok atas halaman login ([`frontend/src/pages/Login.jsx`](frontend/src/pages/Login.jsx)).
+- Mengintegrasikan variabel palet warna `.dark` dan `:root` pada Tailwind CSS v4 / shadcn preset `b5fybI`.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Perbaikan Bug Refresh Halaman & Rekonstruksi Popover NavUser
+
+- Merekonstruksi baris profil pengguna pada sidebar footer ([`frontend/src/components/nav-user.jsx`](frontend/src/components/nav-user.jsx)) menggunakan mekanisme popover dengan state React eksplisit (`useState`, `useRef`, click-outside handler, dan tombol `type="button"`).
+- Menghilangkan bug refresh halaman saat kartu nama pengguna diklik dengan menambahkan pencegahan propagasi event (`e.preventDefault()`, `e.stopPropagation()`).
+- Menu popover kini muncul secara responsif tepat di atas kartu pengguna (atau di samping saat sidebar collapsed) memuat detail akun dan tombol **"Keluar (Log Out)"**.
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Menghilangkan Outline Garis Hitam Tebal pada Diagram Donut Armada
+
+- Menghapus konfigurasi `borderColor: '#18181b'` dan `borderWidth: 2` pada grafik donat *Komposisi Armada Tambang* di [`frontend/src/pages/Dashboard.jsx`](frontend/src/pages/Dashboard.jsx).
+- Menyesuaikan proporsi ketebalan donat (`cutout: '65%'`) dan indikator legenda (*circular pointStyle*) agar tampak bersih, elegan, dan harmonis baik pada mode Terang (Light) maupun Gelap (Dark).
+- Kompilasi build berhasil dan pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] dev | Konfigurasi Local Development (Docker Backend + Bun Vite Frontend)
+
+- Backend (PHP 8.4-FPM `sekawan_app`, MySQL 8.0 `sekawan_db`, Nginx `sekawan_web`) berjalan di dalam Docker pada port `8080` (API proxy `/api`).
+- Frontend development server dijalankan menggunakan `bun run dev` pada port `http://localhost:5173`.
+- Konfigurasi proxy Vite di [`frontend/vite.config.js`](frontend/vite.config.js) dikonfigurasi untuk meneruskan seluruh *request* `/api` langsung ke Docker backend di `http://127.0.0.1:8080`.
+
+## [2026-09-03] feat | Pembuatan Landing Page Presentasi Hasil & Login Demo Credentials Enhancement
+
+- **Landing Page Publik (`/`)**:
+  - Membuat halaman landing page komprehensif di [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx) yang dapat diakses oleh publik tanpa harus login.
+  - Memuat **Hero Section** (tautan GitHub, Buka Dashboard, live telemetry preview), **Requirements Compliance Matrix** (matriks kepatuhan soal A s/d G & instruksi tambahan a s/d d), **Interactive Activity Diagram** (stepper alur 5 tahap persetujuan berjenjang & transisi status), **Physical Data Model (PDM)** (skema 10 tabel basis data relasional MySQL beserta tipe data dan foreign key), **Tech Stack Matrix** (Laravel 13.x, PHP 8.2+, MySQL 8, React 19 SPA, Tailwind CSS v4, Chart.js, Docker), serta **Kredit Pengembang (Gunawan)** dan logo resmi **PT Sekawan Media Informatika** ([`sekawan-media-logo.png`](sekawan-media-logo.png)).
+- **Login Page Demo Credentials Enhancement (`/login`)**:
+  - Memperbarui [`frontend/src/components/login-form.jsx`](frontend/src/components/login-form.jsx) dengan tombol info `!` interaktif yang memunculkan popover daftar akun pengujian (Admin Pool, Approver Level 1, Approver Level 2, Approver Site).
+  - Menyediakan fitur *One-Click Auto-Fill* dan disclaimer resmi demo pengujian teknis rekrutmen.
+  - Menyesuaikan redirect pada [`frontend/src/pages/Login.jsx`](frontend/src/pages/Login.jsx) agar mengarahkan ke `/dashboard` saat pengguna telah terotentikasi.
+- **Restrukturisasi Routing Frontend**:
+  - Memperbarui [`frontend/src/App.jsx`](frontend/src/App.jsx) untuk mendaftarkan `/` sebagai `LandingPage` publik dan `/dashboard` sebagai halaman `Dashboard` terproteksi.
+  - Memperbarui navigasi di [`frontend/src/components/app-sidebar.jsx`](frontend/src/components/app-sidebar.jsx) dan [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx).
+- **Dokumentasi & Wiki**:
+  - Membuat dokumen [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md) dan memperbarui indeks [`docs/README.md`](docs/README.md).
+
+
+## [2026-09-03] refactor | Audit Standarisasi Seluruh Tombol Menggunakan Komponen Shadcn Button
+
+- Melakukan audit komprehensif pada seluruh file komponen dan halaman aplikasi (`frontend/src`).
+- Mengganti seluruh tag `<button>` mentah yang tersisa menjadi komponen resmi shadcn `<Button>` dari `@/components/ui/button` (dan helper `buttonVariants` untuk tautan/elemen kustom).
+- Menambahkan varian ukuran mikro `"icon-xs": "size-6 p-0"` pada [`frontend/src/components/ui/button.jsx`](frontend/src/components/ui/button.jsx) untuk mendukung tombol *close* notifikasi dan modal.
+- File yang distandarisasi meliputi: [`login-form.jsx`](frontend/src/components/login-form.jsx), [`nav-user.jsx`](frontend/src/components/nav-user.jsx), [`ToastContext.jsx`](frontend/src/context/ToastContext.jsx), [`mode-toggle.jsx`](frontend/src/components/mode-toggle.jsx), dan [`LandingPage.jsx`](frontend/src/pages/LandingPage.jsx).
+- Kompilasi build frontend sukses dan perubahan telah di-push ke branch `main`.
+
+## [2026-09-03] feat | Implementasi Dashboard Monitoring Kantor Cabang & Wilayah Tambang
+
+- Menambahkan endpoint backend `GET /api/dashboard/regions` (ringkasan komparatif 8 wilayah) dan `GET /api/dashboard/regions/{id}` (analisis mendalam per wilayah) pada [`backend/app/Http/Controllers/Api/DashboardController.php`](backend/app/Http/Controllers/Api/DashboardController.php) dan [`backend/routes/api.php`](backend/routes/api.php).
+- Membuat halaman visual baru [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx) dengan dua mode interaksi:
+  1. **Mode Ringkasan (Overview):** Komparasi ke-8 wilayah (armada pool, supir, ritase, dan biaya BBM) dengan grafik batang perbandingan.
+  2. **Mode Detail (Drill-Down):** Analisis spesifik kantor cabang/tambang dengan kartu KPI, grafik donat komposisi armada, bar chart koridor rute destinasi, dan 4 tab data detail (Armada, Supir, Perjalanan, BBM & Servis).
+- Mendaftarkan rute `/branch-dashboard` di [`frontend/src/App.jsx`](frontend/src/App.jsx), menambahkan navigasi **"Dashboard Cabang"** pada [`frontend/src/components/app-sidebar.jsx`](frontend/src/components/app-sidebar.jsx), serta judul breadcrumb pada [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx).
+- Membuat dokumentasi lengkap [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md) dan memperbarui indeks [`docs/README.md`](docs/README.md).
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
