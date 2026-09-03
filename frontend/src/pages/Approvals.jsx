@@ -22,7 +22,7 @@ import {
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -292,117 +292,167 @@ export const Approvals = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Pending Approvals */}
+        {/* Tab 1: Pending Approvals (Card Grid Layout) */}
         <TabsContent value="pending" className="space-y-4">
-          <Card className="border-border/80 shadow-xs">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 text-[11px] uppercase font-bold tracking-wider">
-                    <TableHead className="py-3 px-4">No. Booking & Pemohon</TableHead>
-                    <TableHead className="py-3 px-4">Kendaraan & Supir</TableHead>
-                    <TableHead className="py-3 px-4">Rute Perjalanan</TableHead>
-                    <TableHead className="py-3 px-4">Jadwal Pakai</TableHead>
-                    <TableHead className="py-3 px-4">Alur Tingkat</TableHead>
-                    <TableHead className="py-3 px-4 text-right">Aksi Otorisasi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="divide-y divide-border/60">
-                  {loadingPending ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
-                        <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
-                        <p>Memeriksa antrean persetujuan...</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : pendingList.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
-                        <CheckCircle2 className="w-8 h-8 text-emerald-500/40 mx-auto mb-2" />
-                        <p className="font-semibold text-foreground">Tidak Ada Antrean Persetujuan</p>
-                        <p className="text-muted-foreground text-[11px] mt-0.5">Semua permohonan kendaraan telah diproses atau sudah selesai diotorisasi.</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    pendingList.map((item) => {
-                      const b = item.booking || item;
-                      return (
-                        <TableRow key={item.id || b.id} className="hover:bg-muted/30 transition-colors">
-                          <TableCell className="py-3.5 px-4 text-xs">
-                            <div className="font-mono font-bold text-amber-500">{b.booking_code}</div>
-                            <div className="font-bold text-foreground mt-0.5">{b.requester_name}</div>
-                            <div className="text-[10px] text-muted-foreground">{b.requester_department || b.department}</div>
-                          </TableCell>
-                          <TableCell className="py-3.5 px-4 text-xs">
-                            <div className="font-bold text-foreground flex items-center gap-1">
-                              <Truck className="w-3.5 h-3.5 text-muted-foreground" />
-                              {b.vehicle?.name}
-                            </div>
-                            <div className="text-[11px] text-muted-foreground font-mono">{b.vehicle?.license_plate}</div>
-                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <User className="w-3 h-3" />
-                              {b.driver ? b.driver.name : 'Tanpa Supir'}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-3.5 px-4 text-xs">
-                            <div className="flex items-center gap-1 font-semibold text-foreground">
-                              <MapPin className="w-3 h-3 text-emerald-400" />
-                              {b.origin_region?.name} &rarr; <MapPin className="w-3 h-3 text-rose-400" /> {b.destination_region?.name}
-                            </div>
-                            <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{b.purpose}</div>
-                          </TableCell>
-                          <TableCell className="py-3.5 px-4 text-xs font-mono">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                              {new Date(b.start_date).toLocaleDateString('id-ID')} - {new Date(b.end_date).toLocaleDateString('id-ID')}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-3.5 px-4">
-                            {renderApprovalTimeline(b.approvals)}
-                          </TableCell>
-                          <TableCell className="py-3.5 px-4 text-right">
-                            {isAdmin ? (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleOpenCancel(b)}
-                                className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10 hover:border-rose-500 font-bold text-xs gap-1.5 h-8"
-                              >
-                                <Ban className="w-3.5 h-3.5" />
-                                <span>Batalkan</span>
-                              </Button>
-                            ) : (
-                              <div className="flex items-center justify-end gap-1.5">
-                                <Button
-                                  type="button"
-                                  variant="destructiveOutline"
-                                  size="sm"
-                                  onClick={() => handleOpenAction(b, 'reject')}
-                                >
-                                  <XCircle className="w-3.5 h-3.5" />
-                                  <span>Tolak</span>
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="emerald"
-                                  size="sm"
-                                  onClick={() => handleOpenAction(b, 'approve')}
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>Setujui</span>
-                                </Button>
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          {loadingPending ? (
+            <Card className="border-border/80 p-12 text-center text-muted-foreground text-xs">
+              <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
+              <p>Memeriksa antrean persetujuan...</p>
+            </Card>
+          ) : pendingList.length === 0 ? (
+            <Card className="border-border/80 text-center py-12">
+              <CardContent className="space-y-2">
+                <CheckCircle2 className="w-10 h-10 text-emerald-500/50 mx-auto mb-1" />
+                <h3 className="text-sm font-bold text-foreground">Semua Persetujuan Selesai</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Tidak ada pemesanan kendaraan yang sedang menunggu tindakan persetujuan saat ini.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pendingList.map((item) => {
+                const b = item.booking || item;
+                const l1 = b.approvals?.find((a) => a.tier_level === 1);
+                const l2 = b.approvals?.find((a) => a.tier_level === 2);
+                const currentLevel = b.status === 'pending_level_1' ? 1 : 2;
+
+                return (
+                  <Card key={item.id || b.id} className="border-border/80 shadow-xs flex flex-col justify-between overflow-hidden hover:border-amber-500/40 transition-colors">
+                    <CardHeader className="p-4 pb-3 border-b border-border/60">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            {b.booking_code}
+                          </span>
+                          <BookingStatusBadge status={b.status} />
+                        </div>
+
+                        <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 text-[10px] font-bold uppercase tracking-wider">
+                          Persetujuan Level {currentLevel}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="p-4 space-y-3.5">
+                      {/* Pemohon & Divisi */}
+                      <div>
+                        <p className="font-bold text-foreground text-sm">{b.requester_name}</p>
+                        <p className="text-xs text-muted-foreground">{b.requester_department || b.department}</p>
+                      </div>
+
+                      {/* Detail Armada, Supir, Rute & Jadwal */}
+                      <div className="p-3 rounded-xl bg-muted/40 border border-border/60 space-y-2 text-xs">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <Truck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>{b.vehicle?.name}</span>
+                          <span className="text-muted-foreground font-mono text-[11px]">({b.vehicle?.license_plate})</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <User className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                          <span>Supir: <strong className="text-foreground">{b.driver ? b.driver.name : 'Tanpa Supir (Lepas Kunci)'}</strong></span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span>{b.origin_region?.name}</span>
+                          <span className="text-muted-foreground font-bold">&rarr;</span>
+                          <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                          <strong className="text-foreground">{b.destination_region?.name}</strong>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                          <span className="font-mono text-[11px]">
+                            {new Date(b.start_date).toLocaleDateString('id-ID')} s/d {new Date(b.end_date).toLocaleDateString('id-ID')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Keperluan Dinas */}
+                      {b.purpose && (
+                        <div>
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                            Keperluan Dinas:
+                          </span>
+                          <p className="text-xs text-foreground bg-muted/20 p-2.5 rounded-lg border border-border/60 italic">
+                            "{b.purpose}"
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Catatan Level 1 (jika sedang di Level 2) */}
+                      {currentLevel === 2 && l1 && l1.notes && (
+                        <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px]">
+                          <p className="font-bold text-emerald-500">
+                            Catatan Penyetujui Level 1 (Supervisor):
+                          </p>
+                          <p className="text-foreground mt-0.5 font-italic">"{l1.notes}"</p>
+                        </div>
+                      )}
+
+                      {/* Status Otorisasi Berjenjang */}
+                      <div className="pt-1">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                          Alur Persetujuan Bertingkat:
+                        </span>
+                        {renderApprovalTimeline(b.approvals)}
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="p-4 pt-3 border-t border-border/80 bg-muted/10">
+                      {isAdmin ? (
+                        /* Admin View: Info status persetujuan + Tombol Batalkan */
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 self-start sm:self-auto">
+                            <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <span>
+                              Menunggu otorisasi: <strong className="text-foreground">{currentLevel === 1 ? 'Penyetujui Level 1 (Supervisor)' : 'Penyetujui Level 2 (Kepala Pool / GM)'}</strong>
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructiveOutline"
+                            size="sm"
+                            onClick={() => handleOpenCancel(b)}
+                            className="w-full sm:w-auto font-bold text-xs gap-1.5 h-8"
+                          >
+                            <Ban className="w-3.5 h-3.5" />
+                            <span>Batalkan</span>
+                          </Button>
+                        </div>
+                      ) : (
+                        /* Approver View: Tombol Tolak & Setujui */
+                        <div className="flex items-center justify-end gap-2 w-full">
+                          <Button
+                            type="button"
+                            variant="destructiveOutline"
+                            size="sm"
+                            onClick={() => handleOpenAction(b, 'reject')}
+                            className="flex-1 font-bold text-xs gap-1.5 h-8.5"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            <span>Tolak</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="emerald"
+                            size="sm"
+                            onClick={() => handleOpenAction(b, 'approve')}
+                            className="flex-1 font-bold text-xs gap-1.5 h-8.5"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Setujui Permohonan</span>
+                          </Button>
+                        </div>
+                      )}
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
 
         {/* Tab 2: Approval History */}

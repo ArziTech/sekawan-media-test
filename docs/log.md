@@ -430,3 +430,15 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - Mendaftarkan rute `/duties` pada [`App.jsx`](frontend/src/App.jsx) dan breadcrumb pada [`site-header.jsx`](frontend/src/components/site-header.jsx).
 - **Dokumentasi Wiki:**
   - Membuat dokumen [`docs/monitoring-personil-bertugas.md`](docs/monitoring-personil-bertugas.md) dan menambahkan tautan ke [`docs/README.md`](docs/README.md).
+
+## [2026-09-03] refactor | Restorasi Tampilan Grid Card pada Tab Menunggu Keputusan Portal Persetujuan
+
+- Mengubah tampilan tab "Menunggu Keputusan" pada [`frontend/src/pages/Approvals.jsx`](frontend/src/pages/Approvals.jsx) dari tabel datar kembali menjadi **Responsive Card Grid Layout**.
+- Setiap kartu menyajikan:
+  - Header dengan kode booking, badge status, dan badge penanda tahap persetujuan (Level 1 / Level 2).
+  - Nama pemohon dan departemen kerja.
+  - Kotak rincian armada kendaraan, nomor polisi plat, supir, rute dinas (Pool Asal $\rightarrow$ Tujuan), dan jadwal pemakaian.
+  - Kotak kutipan justifikasi/keperluan dinas.
+  - Catatan keputusan dari Penyetujui Level 1 jika permohonan sedang berada di Level 2.
+  - Indikator alur otorisasi berjenjang visual (`renderApprovalTimeline`).
+  - Footer dengan tombol aksi kontekstual: Tombol *Setujui Permohonan* & *Tolak* bagi Approver yang berwenang, atau tombol *Batalkan* bagi Administrator.
