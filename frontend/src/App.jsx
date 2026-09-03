@@ -5,8 +5,10 @@ import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './components/theme-provider';
 import { AppLayout } from './components/layout/AppLayout';
 
+import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
+import { BranchDashboard } from './pages/BranchDashboard';
 import { Bookings } from './pages/Bookings';
 import { Approvals } from './pages/Approvals';
 import { Vehicles } from './pages/Vehicles';
@@ -41,26 +43,28 @@ export default function App() {
         <AuthProvider>
           <BrowserRouter>
             <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
 
               {/* Authenticated routes wrapped in AppLayout */}
               <Route
-                path="/"
                 element={
                   <ProtectedRoute>
                     <AppLayout />
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Dashboard />} />
-                <Route path="bookings" element={<Bookings />} />
-                <Route path="approvals" element={<Approvals />} />
-                <Route path="vehicles" element={<Vehicles />} />
-                <Route path="drivers" element={<Drivers />} />
-                <Route path="fuel-logs" element={<FuelLogs />} />
-                <Route path="service-logs" element={<ServiceLogs />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="activity-logs" element={<ActivityLogs />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/branch-dashboard" element={<BranchDashboard />} />
+                <Route path="/bookings" element={<Bookings />} />
+                <Route path="/approvals" element={<Approvals />} />
+                <Route path="/vehicles" element={<Vehicles />} />
+                <Route path="/drivers" element={<Drivers />} />
+                <Route path="/fuel-logs" element={<FuelLogs />} />
+                <Route path="/service-logs" element={<ServiceLogs />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/activity-logs" element={<ActivityLogs />} />
               </Route>
 
               {/* Fallback */}

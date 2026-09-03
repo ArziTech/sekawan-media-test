@@ -8,7 +8,7 @@ export const Login = () => {
   const { user, loading } = useAuth();
 
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 relative">
@@ -17,9 +17,6 @@ export const Login = () => {
       </div>
       <div className="w-full max-w-4xl">
         <LoginForm />
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          PT Tambang Nikel Nusantara &copy; 2026 &middot; Nickel Fleet Management System
-        </p>
       </div>
     </div>
   );

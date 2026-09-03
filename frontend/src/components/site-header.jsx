@@ -19,7 +19,10 @@ export function SiteHeader() {
   const getPageTitle = (pathname) => {
     switch (pathname) {
       case '/':
+      case '/dashboard':
         return 'Dashboard Monitoring';
+      case '/branch-dashboard':
+        return 'Monitoring Kantor Cabang & Site';
       case '/bookings':
         return 'Pemesanan Kendaraan';
       case '/approvals':
@@ -51,7 +54,7 @@ export function SiteHeader() {
         <Breadcrumb className="hidden sm:block">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/" className="text-xs text-muted-foreground hover:text-foreground">
+              <BreadcrumbLink href="/dashboard" className="text-xs text-muted-foreground hover:text-foreground">
                 Nickel Fleet
               </BreadcrumbLink>
             </BreadcrumbItem>

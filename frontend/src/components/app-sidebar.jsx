@@ -15,6 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import {
   LayoutDashboard,
+  Building2,
   CalendarCheck,
   CheckSquare,
   Truck,
@@ -48,9 +49,14 @@ export function AppSidebar({ ...props }) {
 
   const navOperations = [
     {
-      title: "Dashboard",
-      url: "/",
+      title: "Dashboard Utama",
+      url: "/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      title: "Dashboard Cabang",
+      url: "/branch-dashboard",
+      icon: Building2,
     },
     {
       title: "Pemesanan Kendaraan",

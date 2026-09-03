@@ -41,6 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/stats', [DashboardController::class, 'stats']);
         Route::get('/charts', [DashboardController::class, 'charts']);
         Route::get('/recent', [DashboardController::class, 'recent']);
+        Route::get('/regions', [DashboardController::class, 'regionalOverview']);
+        Route::get('/regions/{id}', [DashboardController::class, 'regionalDetail']);
     });
 
     // Master Regions & Rental Companies

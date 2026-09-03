@@ -124,9 +124,6 @@ export function LoginForm({ className, ...props }) {
                 <h1 className="text-xl font-bold tracking-tight text-foreground">
                   Masuk ke Portal Operasional
                 </h1>
-                <p className="text-xs text-muted-foreground">
-                  Masukkan kredensial akun Anda untuk mengelola pemesanan armada dan persetujuan.
-                </p>
               </div>
 
               <div className="space-y-4">
@@ -173,7 +170,7 @@ export function LoginForm({ className, ...props }) {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-11 text-xs font-bold uppercase tracking-wider gap-2 shadow-sm bg-amber-500 text-slate-950 hover:bg-amber-400"
+                  className="w-full h-11 text-xs font-bold uppercase tracking-wider gap-2 shadow-sm "
                 >
                   <LogIn className="w-4 h-4" />
                   {submitting ? 'Memverifikasi...' : 'Masuk ke Sistem'}
@@ -226,10 +223,6 @@ export function LoginForm({ className, ...props }) {
           {/* Right: Operational Showcase Panel */}
           <div className="relative hidden md:flex flex-col justify-between p-8 bg-zinc-900 text-zinc-100 border-l border-border/60">
             <div className="space-y-4 relative z-10">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                <Truck className="w-3.5 h-3.5" />
-                Sistem Pemantauan Terpadu
-              </div>
               <h2 className="text-xl font-bold tracking-tight text-white leading-snug">
                 Manajemen Logistik & Armada Tambang Nikel Terdistribusi
               </h2>

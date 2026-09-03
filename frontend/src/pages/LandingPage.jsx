@@ -307,16 +307,6 @@ export const LandingPage = () => {
         { name: 'Axios & Context API', version: 'v1.x', desc: 'Reactive state management and interceptor-based API client' },
       ],
     },
-    {
-      category: 'Infrastructure & DevOps',
-      icon: Cpu,
-      items: [
-        { name: 'Docker Compose', version: 'v5.x / Compose v2', desc: 'One-command container orchestration' },
-        { name: 'Nginx Web Server', version: 'Alpine Linux', desc: 'Reverse proxy & static asset delivery' },
-        { name: 'PHP-FPM Alpine', version: 'PHP 8.2 Alpine', desc: 'Lightweight, optimized backend container' },
-        { name: 'Database Seeder', version: 'Automated', desc: '16 vehicles, 8 drivers, 8 regions, realistic operational data' },
-      ],
-    },
   ];
 
   return (
@@ -326,21 +316,10 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-3 group">
-              <img
-                src={logoSekawan}
-                alt="Logo Sekawan Media"
-                className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
-              />
-              <div className="h-5 w-px bg-border/80 hidden sm:block" />
+
               <div className="hidden sm:flex flex-col">
                 <span className="text-xs font-black tracking-wider uppercase text-foreground leading-tight flex items-center gap-1.5">
                   NICKEL FLEET
-                  <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 text-[10px] font-bold border border-amber-500/20">
-                    TEST RESULT
-                  </span>
-                </span>
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                  PT Sekawan Media Informatika
                 </span>
               </div>
             </Link>
@@ -362,7 +341,6 @@ export const LandingPage = () => {
                 to="/dashboard"
                 className={cn(
                   buttonVariants({ variant: 'default', size: 'sm' }),
-                  'h-9 px-4 text-xs font-bold gap-1.5 shadow-sm bg-amber-500 text-slate-950 hover:bg-amber-400'
                 )}
               >
                 <LayoutDashboardIcon className="w-3.5 h-3.5" />
@@ -373,12 +351,12 @@ export const LandingPage = () => {
                 to="/login"
                 className={cn(
                   buttonVariants({ variant: 'default', size: 'sm' }),
-                  'h-9 px-4 text-xs font-bold gap-1.5 shadow-sm bg-amber-500 text-slate-950 hover:bg-amber-400'
                 )}
               >
                 <KeyRound className="w-3.5 h-3.5" />
                 <span>Masuk Portal</span>
               </Link>
+
             )}
           </div>
         </div>
@@ -394,11 +372,6 @@ export const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Technical Assessment &middot; Fullstack Developer Intern</span>
-              </div>
-
               <div className="space-y-3">
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
                   Monitoring & Pemesanan Armada Tambang Nikel Terdistribusi
@@ -414,7 +387,7 @@ export const LandingPage = () => {
                   to={user ? "/dashboard" : "/login"}
                   className={cn(
                     buttonVariants({ size: "lg" }),
-                    "h-11 px-6 font-bold text-xs uppercase tracking-wider bg-amber-500 text-slate-950 hover:bg-amber-400 gap-2 shadow-lg shadow-amber-500/10"
+                    "h-11 px-6  uppercase tracking-wider "
                   )}
                 >
                   <Truck className="w-4 h-4" />
@@ -436,36 +409,10 @@ export const LandingPage = () => {
                   <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
                 </a>
 
-                <a
-                  href="#activity-diagram"
-                  className={cn(
-                    buttonVariants({ variant: "ghost", size: "lg" }),
-                    "h-11 px-4 text-xs font-semibold text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Lihat Diagram Alur &rarr;
-                </a>
+
               </div>
 
-              {/* Telemetry Operational Highlights */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-border/60">
-                <div className="p-3 rounded-xl bg-card border border-border/60">
-                  <div className="text-xl font-extrabold text-amber-500">8 Wilayah</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">1 HQ, 1 Cabang, 6 Site</div>
-                </div>
-                <div className="p-3 rounded-xl bg-card border border-border/60">
-                  <div className="text-xl font-extrabold text-foreground">16 Unit</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">Angkutan Orang & Barang</div>
-                </div>
-                <div className="p-3 rounded-xl bg-card border border-border/60">
-                  <div className="text-xl font-extrabold text-emerald-500">2-Tier</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">Multi-Level Approval</div>
-                </div>
-                <div className="p-3 rounded-xl bg-card border border-border/60">
-                  <div className="text-xl font-extrabold text-blue-500">100%</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">Audit Trail Activity Log</div>
-                </div>
-              </div>
+
             </div>
 
             {/* Right Interactive Operational Card Showcase */}
@@ -682,7 +629,7 @@ export const LandingPage = () => {
               <span>Sequential Multi-Level Engine</span>
             </div>
             <pre className="leading-relaxed whitespace-pre text-[11px] text-zinc-300">
-{`[ADMIN POOL] ──► Input Booking ──► [pending_level_1]
+              {`[ADMIN POOL] ──► Input Booking ──► [pending_level_1]
                                           │
                                           ▼
                                 [APPROVER LEVEL 1 (Supervisor)]
@@ -742,7 +689,7 @@ export const LandingPage = () => {
                   className={cn(
                     "px-4 py-2 text-xs font-mono font-bold transition-all cursor-pointer",
                     isActive
-                      ? "bg-amber-500 text-slate-950 hover:bg-amber-400 border-amber-500 shadow-sm"
+                      ? ""
                       : "bg-card border-border/60 text-muted-foreground hover:text-foreground hover:border-border"
                   )}
                 >
@@ -797,7 +744,7 @@ export const LandingPage = () => {
                               <span className={cn(
                                 "px-1.5 py-0.5 rounded text-[10px] font-bold",
                                 col.key === 'PK' ? "bg-amber-500/20 text-amber-400" :
-                                col.key === 'FK' ? "bg-blue-500/20 text-blue-400" : "bg-purple-500/20 text-purple-400"
+                                  col.key === 'FK' ? "bg-blue-500/20 text-blue-400" : "bg-purple-500/20 text-purple-400"
                               )}>
                                 {col.key}
                               </span>
@@ -835,7 +782,7 @@ export const LandingPage = () => {
           </div>
 
           {/* Tech Stack Cards Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {techStack.map((group, idx) => {
               const Icon = group.icon;
               return (
@@ -885,12 +832,6 @@ export const LandingPage = () => {
                 Aplikasi ini dikembangkan khusus sebagai hasil pengerjaan <strong className="text-foreground">Technical Test - Fullstack Developer (Intern)</strong> pada <strong className="text-foreground">PT Sekawan Media Informatika</strong>.
               </p>
               <div className="space-y-1.5 text-xs text-muted-foreground">
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span>
-                    Cluster Coding Factory, KEK Singhasari, Jl. Raya Klampok RT 04/RW 04, Desa Klampok, Kec. Singosari, Kab. Malang 65153
-                  </span>
-                </div>
                 <div className="flex items-center gap-2">
                   <Compass className="w-4 h-4 text-amber-500 shrink-0" />
                   <a href="https://www.sekawanmedia.co.id" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">
@@ -912,17 +853,13 @@ export const LandingPage = () => {
                     <span className="text-xs font-bold text-foreground">Gunawan</span>
                   </div>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Fullstack Developer Candidate &middot; Technical Recruitment Test 2026
-                </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link
                   to="/login"
                   className={cn(
-                    buttonVariants({ variant: "default", size: "sm" }),
-                    "text-xs font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 gap-1.5"
+                    buttonVariants({ variant: "default", size: "sm" })
                   )}
                 >
                   <KeyRound className="w-3.5 h-3.5" />
@@ -946,7 +883,7 @@ export const LandingPage = () => {
 
           <div className="border-t border-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>
-              &copy; 2026 PT Sekawan Media Informatika &middot; Developed by Gunawan
+              Developed by Gunawan
             </p>
             <p className="font-mono text-[11px]">
               Nickel Fleet Management System v1.0.0
