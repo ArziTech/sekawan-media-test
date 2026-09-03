@@ -18,6 +18,7 @@ import {
   Building2,
   CalendarCheck,
   CheckSquare,
+  Radio,
   Truck,
   Users,
   Fuel,
@@ -31,9 +32,10 @@ import {
 export function AppSidebar({ ...props }) {
   const { user, isAdmin } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
+  const [activeDutyCount, setActiveDutyCount] = useState(0);
 
   useEffect(() => {
-    const fetchPending = () => {
+    const fetchCounts = () => {
       api.get('/approvals/pending')
         .then((res) => {
           if (res.data.success) {
@@ -41,10 +43,18 @@ export function AppSidebar({ ...props }) {
           }
         })
         .catch(() => {});
+
+      api.get('/duties')
+        .then((res) => {
+          if (res.data?.success && res.data?.data?.stats) {
+            setActiveDutyCount(res.data.data.stats.active_duties || 0);
+          }
+        })
+        .catch(() => {});
     };
 
-    fetchPending();
-    const interval = setInterval(fetchPending, 15000);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -58,6 +68,12 @@ export function AppSidebar({ ...props }) {
       title: "Dashboard Cabang",
       url: "/branch-dashboard",
       icon: Building2,
+    },
+    {
+      title: "Personil Bertugas",
+      url: "/duties",
+      icon: Radio,
+      badge: activeDutyCount > 0 ? activeDutyCount : null,
     },
     {
       title: "Pemesanan Kendaraan",

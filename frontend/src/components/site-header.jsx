@@ -34,6 +34,8 @@ export function SiteHeader() {
         return 'Dashboard Monitoring';
       case '/branch-dashboard':
         return 'Monitoring Kantor Cabang & Site';
+      case '/duties':
+        return 'Monitoring Personil Bertugas & Operasi Armada';
       case '/bookings':
         return 'Pemesanan Kendaraan';
       case '/approvals':

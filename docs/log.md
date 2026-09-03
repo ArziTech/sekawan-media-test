@@ -391,3 +391,42 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - **Pemesanan Kendaraan:** [`Bookings.jsx`](frontend/src/pages/Bookings.jsx) (`sm:max-w-2xl`).
   - **Portal Persetujuan:** [`Approvals.jsx`](frontend/src/pages/Approvals.jsx) (`sm:max-w-lg`).
 - Label dan dropdown select tidak lagi terpotong/sempit, memberikan ruang visual yang proporsional dan ergonomis.
+
+## [2026-09-03] fix | Sinkronisasi Kunci Data Respon & Pemetaan Status pada Tabel Laporan
+
+- **Masalah:** Tabel pada halaman [`Reports.jsx`](frontend/src/pages/Reports.jsx) menampilkan status kosong (*"Tidak ada catatan pemesanan pada parameter filter ini"*) meskipun kartu ringkasan KPI menampilkan `11 Transaksi`.
+- **Akar Masalah:**
+  - *Response Parsing:* `useQuery` mengakses `res.data?.data?.data` alih-alih `res.data?.data?.bookings`, sehingga array `bookings` selalu bernilai `[]`.
+  - *Status Enum Mismatch:* Dropdown filter status menggunakan nilai lama (`pending_approval_1`, `pending_approval_2`, `in_progress`) yang tidak cocok dengan enum database (`pending_level_1`, `pending_level_2`, `in_use`).
+- **Perubahan yang Diterapkan:**
+  - Memperbaiki parsing array data menjadi `res.data?.data?.bookings || res.data?.data?.data || []`.
+  - Memperbarui opsi `SelectItem` status booking dengan enum database resmi.
+  - Memastikan fallback kolom `requester_department` dan relasi wilayah `origin_region` / `destination_region` terpetakan sempurna pada baris tabel.
+- Build produksi frontend sukses dan data kini muncul secara lengkap pada tabel.
+
+## [2026-09-03] feat | Integrasi Animated Hero Section (HeroSectionOne) pada Landing Page
+
+- Menginstal paket `motion` (Framer Motion engine) untuk animasi UI.
+- Membuat komponen [`frontend/src/components/ui/hero-section-demo-1.jsx`](frontend/src/components/ui/hero-section-demo-1.jsx) (`HeroSectionOne`) dengan penyesuaian tema sistem pertambangan nikel:
+  - *Staggered Motion Headline:* Animasi kata per kata dengan efek blur dan fade.
+  - *Glowing Border Beam Lines:* Berkas aksen vertikal dan horizontal dengan gradasi amber pertambangan (`via-amber-500`).
+  - *Telemetry Metric Strip:* Kartu ringkasan 8 Wilayah, 16 Unit Armada, 2-Tier Multi-Level Approval, dan 100% Audit Trail.
+  - *Showcase Mockup Container:* Kontainer berbingkai simulasi dashboard operasional dengan *Live Dispatch Engine*, kartu perjalanan aktif, verifikasi bertingkat, dan kredit pengembang Gunawan.
+- Mengganti Hero section lama pada [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx) dengan `<HeroSectionOne />`.
+- Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
+- Kompilasi build frontend sukses tanpa galat.
+
+
+
+## [2026-09-03] ingest | Halaman Monitoring Personil Bertugas & Operasi Armada
+
+- **Backend:**
+  - Membuat controller [`DutyController.php`](backend/app/Http/Controllers/Api/DutyController.php) dengan endpoint `GET /api/duties` yang menyajikan data agregat KPI penugasan aktif, supir standby per pool, dan rekap selesai hari ini dengan RBAC regional scoping.
+  - Memperbarui `completeTrip` pada [`BookingController.php`](backend/app/Http/Controllers/Api/BookingController.php) untuk secara otomatis mengembalikan status driver dan kendaraan menjadi `available` (Tersedia), serta mendukung pencatatan log pengisian BBM opsional secara atomik ke tabel `fuel_logs`.
+  - Mendaftarkan rute `GET /api/duties` pada [`api.php`](backend/routes/api.php).
+- **Frontend:**
+  - Membuat halaman [`frontend/src/pages/Duties.jsx`](frontend/src/pages/Duties.jsx) dengan 4 live KPI metrics, 4 tab tampilan (Sedang Bertugas, Terjadwal, Supir Standby di Pool, Selesai Hari Ini), filter pencarian & pool, aksi cepat kontak WhatsApp/Telepon supir, dan modal selesaikan trip terintegrasi form BBM.
+  - Menambahkan menu navigasi "Personil Bertugas" pada [`app-sidebar.jsx`](frontend/src/components/app-sidebar.jsx) dengan badge live counter.
+  - Mendaftarkan rute `/duties` pada [`App.jsx`](frontend/src/App.jsx) dan breadcrumb pada [`site-header.jsx`](frontend/src/components/site-header.jsx).
+- **Dokumentasi Wiki:**
+  - Membuat dokumen [`docs/monitoring-personil-bertugas.md`](docs/monitoring-personil-bertugas.md) dan menambahkan tautan ke [`docs/README.md`](docs/README.md).

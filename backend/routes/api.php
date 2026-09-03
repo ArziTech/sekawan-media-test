@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DriverController;
+use App\Http\Controllers\Api\DutyController;
 use App\Http\Controllers\Api\FuelLogController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\ReportController;
@@ -48,6 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Master Regions & Rental Companies
     Route::get('/regions', [RegionController::class, 'index']);
+
+    // Active Duties & Operations Monitoring
+    Route::get('/duties', [DutyController::class, 'index']);
 
     // Bookings & Workflow
     Route::get('/bookings', [BookingController::class, 'index']);

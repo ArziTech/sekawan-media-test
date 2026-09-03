@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\Driver;
+use App\Models\FuelLog;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\ActivityLogger;
@@ -270,7 +271,7 @@ class BookingController extends Controller
 
     public function completeTrip($id, Request $request): JsonResponse
     {
-        $booking = Booking::with(['vehicle', 'driver'])->findOrFail($id);
+        $booking = Booking::with(['vehicle', 'driver', 'originRegion', 'destinationRegion'])->findOrFail($id);
 
         if ($booking->status !== 'in_use') {
             return response()->json([
@@ -281,10 +282,18 @@ class BookingController extends Controller
 
         $request->validate([
             'end_odometer' => 'required|integer|gte:' . ($booking->start_odometer ?? 0),
+            'has_fuel_refill' => 'nullable|boolean',
+            'liters' => 'required_if:has_fuel_refill,true|nullable|numeric|gt:0',
+            'cost_per_liter' => 'required_if:has_fuel_refill,true|nullable|numeric|gt:0',
+            'fuel_type' => 'nullable|string',
+            'gas_station_receipt' => 'nullable|string',
+            'fuel_notes' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($booking, $request) {
-            $endOdo = $request->end_odometer;
+        $fuelLogCreated = null;
+
+        DB::transaction(function () use ($booking, $request, &$fuelLogCreated) {
+            $endOdo = (int) $request->end_odometer;
 
             $booking->update([
                 'status' => 'completed',
@@ -296,9 +305,45 @@ class BookingController extends Controller
                 'current_odometer' => $endOdo,
             ]);
 
-            $booking->driver->update([
-                'status' => 'available',
-            ]);
+            if ($booking->driver) {
+                $booking->driver->update([
+                    'status' => 'available',
+                ]);
+            }
+
+            // Optional integrated fuel refill logging
+            if ($request->boolean('has_fuel_refill') && $request->filled('liters') && $request->filled('cost_per_liter')) {
+                $liters = (float) $request->liters;
+                $costPerLiter = (float) $request->cost_per_liter;
+                $totalCost = round($liters * $costPerLiter, 2);
+
+                $fuelLogCreated = FuelLog::create([
+                    'vehicle_id' => $booking->vehicle_id,
+                    'booking_id' => $booking->id,
+                    'log_date' => Carbon::now()->toDateString(),
+                    'liters' => $liters,
+                    'cost_per_liter' => $costPerLiter,
+                    'total_cost' => $totalCost,
+                    'odometer_reading' => $endOdo,
+                    'fuel_type' => $request->fuel_type ?: ($booking->vehicle->fuel_type ?: 'Solar Dexlite'),
+                    'receipt_no' => $request->gas_station_receipt,
+                    'notes' => $request->fuel_notes ?: "Pengisian BBM saat penyelesaian perjalanan {$booking->booking_code} ({$booking->originRegion?->name} -> {$booking->destinationRegion?->name})",
+                    'created_by_user_id' => $request->user()->id,
+                ]);
+
+                ActivityLogger::log(
+                    $request->user()->id,
+                    'create_fuel_log',
+                    'fuel_logs',
+                    "Pencatatan konsumsi BBM otomatis saat penyelesaian trip {$booking->booking_code} ({$liters} L - Rp " . number_format($totalCost, 0, ',', '.') . ")",
+                    [
+                        'fuel_log_id' => $fuelLogCreated->id,
+                        'booking_code' => $booking->booking_code,
+                        'liters' => $liters,
+                        'total_cost' => $totalCost,
+                    ]
+                );
+            }
 
             ActivityLogger::log(
                 $request->user()->id,
@@ -311,8 +356,8 @@ class BookingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Pemakaian kendaraan berhasil diselesaikan. Status armada dan driver kembali Tersedia.',
-            'data' => $booking->fresh(['vehicle', 'driver', 'approvals.approver']),
+            'message' => 'Pemakaian kendaraan berhasil diselesaikan. Status armada dan driver kembali Tersedia.' . ($fuelLogCreated ? ' Log pengisian BBM juga berhasil dicatat.' : ''),
+            'data' => $booking->fresh(['vehicle', 'driver', 'approvals.approver', 'fuelLogs']),
         ]);
     }
 

@@ -21,6 +21,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { BranchDashboard } from './pages/BranchDashboard';
 import { BranchDetail } from './pages/BranchDetail';
+import { Duties } from './pages/Duties';
 import { Bookings } from './pages/Bookings';
 import { Approvals } from './pages/Approvals';
 import { Vehicles } from './pages/Vehicles';
@@ -76,6 +77,7 @@ export default function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/branch-dashboard" element={<BranchDashboard />} />
                   <Route path="/branch-dashboard/:id" element={<BranchDetail />} />
+                  <Route path="/duties" element={<Duties />} />
                   <Route path="/bookings" element={<Bookings />} />
                   <Route path="/approvals" element={<Approvals />} />
                   <Route

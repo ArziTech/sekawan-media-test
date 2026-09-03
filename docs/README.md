@@ -13,6 +13,7 @@ Indeks per topik untuk `docs/*.md`. Satu file = satu topik (lihat aturan dokumen
 - **[alur-persetujuan-berjenjang.md](./alur-persetujuan-berjenjang.md)** = Alur kerja persetujuan berjenjang sekuensial (Level 1 $\rightarrow$ Level 2) dan state machine.
 - **[skema-basis-data.md](./skema-basis-data.md)** = Dokumentasi skema 10 tabel basis data MySQL, tipe data, dan relasi Eloquent ORM.
 - **[dashboard-kantor-cabang.md](./dashboard-kantor-cabang.md)** = Dashboard monitoring kantor cabang, kantor pusat, dan 6 wilayah tambang nikel terdistribusi.
+- **[monitoring-personil-bertugas.md](./monitoring-personil-bertugas.md)** = Monitoring personil supir/karyawan yang bertugas di lapangan, operasi armada, supir standby, dan integrasi BBM.
 - **[manajemen-user.md](./manajemen-user.md)** = Manajemen master akun pengguna (Admin & Approver Level 1 / 2), wewenang peran, dan penugasan wilayah.
 - **[panduan-penggunaan.md](./panduan-penggunaan.md)** = Panduan operasional aplikasi, alur booking, otorisasi approval, monitoring BBM/servis, export Excel, dan audit log.
 
@@ -20,6 +21,8 @@ Indeks per topik untuk `docs/*.md`. Satu file = satu topik (lihat aturan dokumen
 
 ## Rencana Implementasi
 
+- **[plans/monitoring-personil-bertugas-dan-armada.md](../plans/monitoring-personil-bertugas-dan-armada.md)** = Dokumen rencana implementasi halaman monitoring personil bertugas, armada aktif, supir standby, dan operasi lapangan.
+- **[plans/perbaikan-format-dan-tampilan-export-excel.md](../plans/perbaikan-format-dan-tampilan-export-excel.md)** = Dokumen rencana perbaikan tata letak, styling visual, penyesuaian lebar kolom, dan formula ekspor Microsoft Excel (.xlsx).
 - **[plans/refactor-form-validation-tanstack-query.md](../plans/refactor-form-validation-tanstack-query.md)** = Dokumen rencana audit & refactor form UI (shadcn/ui), validasi Zod + React Hook Form, dan TanStack Query.
 - **[plans/halaman-detail-kantor-cabang.md](../plans/halaman-detail-kantor-cabang.md)** = Dokumen rencana implementasi halaman detail monitoring kantor cabang dan site tambang.
 - **[plans/manajemen-user-crud.md](../plans/manajemen-user-crud.md)** = Dokumen rencana implementasi manajemen CRUD pengguna dan otorisasi.
