@@ -26,13 +26,13 @@ Dashboard Monitoring Kantor Cabang dan Wilayah Tambang (`/branch-dashboard`) men
 
 ---
 
-## 2. Fitur & Panel Monitoring Terpadu
+## 2. Fitur & Struktur Tata Letak Terkategori
 
-Dashboard ini menyajikan panel ringkasan komprehensif (*Overview Panel*) seluruh 8 wilayah operasional:
-1. **8 Kartu Status Wilayah:** Menampilkan ringkasan kesiapan armada pool (unit tersedia vs total), personil supir siap jalan, ritase perjalanan aktif keluar, serta beban biaya BBM bulan berjalan untuk Kantor Pusat (Jakarta), Kantor Cabang (Kendari), dan 6 Site Tambang Nikel.
-2. **Grafik Komparasi Utilisasi Armada:** Bar chart perbandingan jumlah kendaraan terdaftar dan frekuensi keberangkatan trip logistik per site.
-3. **Grafik Distribusi Beban BBM:** Bar chart sebaran total biaya konsumsi BBM operasional kendaraan pada masing-masing pool wilayah.
-4. **Tabel Ringkasan Komparasi 8 Wilayah:** Rekapitulasi tabel terstruktur memuat rincian armada, supir, ritase perjalanan keluar/masuk, konsumsi BBM (liter & biaya), dan status keaktifan pool.
+Dashboard ini menyajikan panel pemantauan terstruktur dalam 4 section terpisah:
+1. **Section Kantor Pusat (Head Office):** Monitoring khusus kantor pusat holding PT Tambang Nikel Nusantara di Jakarta Selatan (`HQ-JKT`).
+2. **Section Kantor Cabang (Branch Office):** Monitoring khusus kantor cabang operasional di Kendari, Sulawesi Tenggara (`BC-KDR`).
+3. **Section Wilayah Site Tambang Nikel (Mining Sites):** Grid visual 6 site ekstraksi nikel aktif (Pomalaa, Morowali, Konawe, Kolaka, Halmahera, Sorowako).
+4. **Section Analitik Visual & Tabel Rekapitulasi:** Grafik perbandingan alokasi armada & frekuensi trip, grafik distribusi beban BBM, dan tabel komprehensif 8 wilayah.
 
 ---
 

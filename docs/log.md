@@ -241,3 +241,12 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Menyajikan langsung 8 kartu ringkasan status pool, grafik komparasi armada & ritase, grafik distribusi beban BBM bulanan, dan tabel rekapitulasi data seluruh wilayah tanpa distraksi tombol switcher.
 - Memperbarui dokumentasi di [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md).
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] refactor | Pemisahan Tata Letak Section Kantor Pusat, Cabang, dan Site Tambang
+
+- Mengelompokkan tampilan kartu wilayah pada [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx) ke dalam 3 section mandiri dengan visual header dan aksen warna tematik:
+  1. **Section Kantor Pusat (Head Office):** 1 kantor di Jakarta Selatan dengan aksen amber/gold.
+  2. **Section Kantor Cabang (Branch Office):** 1 kantor di Kendari dengan aksen biru.
+  3. **Section Wilayah Site Tambang Nikel:** 6 site ekstraksi aktif dengan aksen emerald.
+- Memperbarui dokumentasi di [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md).
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
