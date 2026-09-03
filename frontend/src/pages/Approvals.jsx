@@ -376,19 +376,18 @@ export const Approvals = () => {
                               <div className="flex items-center justify-end gap-1.5">
                                 <Button
                                   type="button"
-                                  variant="outline"
+                                  variant="destructiveOutline"
                                   size="sm"
                                   onClick={() => handleOpenAction(b, 'reject')}
-                                  className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold text-xs gap-1 h-8"
                                 >
                                   <XCircle className="w-3.5 h-3.5" />
                                   <span>Tolak</span>
                                 </Button>
                                 <Button
                                   type="button"
+                                  variant="emerald"
                                   size="sm"
                                   onClick={() => handleOpenAction(b, 'approve')}
-                                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs gap-1 h-8 shadow-xs"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   <span>Setujui</span>
@@ -528,13 +527,9 @@ export const Approvals = () => {
                 </Button>
                 <Button
                   type="submit"
+                  variant={actionType === 'approve' ? 'emerald' : 'destructive'}
+                  size="sm"
                   disabled={actionMutation.isPending}
-                  className={cn(
-                    "font-bold text-xs gap-1.5",
-                    actionType === 'approve'
-                      ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                      : "bg-rose-600 hover:bg-rose-500 text-white"
-                  )}
                 >
                   {actionMutation.isPending
                     ? 'Memproses...'
@@ -589,8 +584,8 @@ export const Approvals = () => {
                 <Button
                   type="submit"
                   variant="destructive"
+                  size="sm"
                   disabled={cancelMutation.isPending}
-                  className="font-bold text-xs gap-1.5"
                 >
                   <Ban className="w-3.5 h-3.5" />
                   {cancelMutation.isPending ? 'Membatalkan...' : 'Ya, Batalkan Pemesanan'}

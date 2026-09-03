@@ -313,7 +313,6 @@ export const Bookings = () => {
             <Button
               onClick={handleOpenCreate}
               size="sm"
-              className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Buat Pemesanan Baru</span>
@@ -437,10 +436,10 @@ export const Bookings = () => {
                         {isAdmin && b.status === 'approved' && (
                           <Button
                             type="button"
+                            variant="blue"
                             size="xs"
                             onClick={() => startTripMutation.mutate(b.id)}
                             disabled={startTripMutation.isPending}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] gap-1 h-7 shadow-xs"
                           >
                             <Play className="w-3 h-3" />
                             <span>Mulai Trip</span>
@@ -451,9 +450,9 @@ export const Bookings = () => {
                         {isAdmin && b.status === 'in_progress' && (
                           <Button
                             type="button"
+                            variant="emerald"
                             size="xs"
                             onClick={() => handleOpenComplete(b)}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] gap-1 h-7 shadow-xs"
                           >
                             <CheckCircle className="w-3 h-3" />
                             <span>Selesai</span>
@@ -734,8 +733,8 @@ export const Bookings = () => {
                 </Button>
                 <Button
                   type="submit"
+                  size="sm"
                   disabled={createMutation.isPending}
-                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {createMutation.isPending ? 'Mengajukan...' : 'Ajukan Pemesanan'}
@@ -796,8 +795,9 @@ export const Bookings = () => {
                 </Button>
                 <Button
                   type="submit"
+                  variant="emerald"
+                  size="sm"
                   disabled={completeTripMutation.isPending}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {completeTripMutation.isPending ? 'Menyimpan...' : 'Selesaikan & Simpan'}

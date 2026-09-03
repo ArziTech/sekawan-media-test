@@ -231,7 +231,6 @@ export const Vehicles = () => {
             <Button
               onClick={handleOpenAdd}
               size="sm"
-              className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Kendaraan</span>
@@ -601,8 +600,8 @@ export const Vehicles = () => {
                 </Button>
                 <Button
                   type="submit"
+                  size="sm"
                   disabled={saveMutation.isPending}
-                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {saveMutation.isPending ? 'Menyimpan...' : editingVehicle ? 'Simpan Perubahan' : 'Tambah Unit'}
@@ -646,7 +645,6 @@ export const Vehicles = () => {
               size="sm"
               disabled={deleteMutation.isPending}
               onClick={() => deleteMutation.mutate(deletingVehicle.id)}
-              className="font-bold text-xs gap-1.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {deleteMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Kendaraan'}

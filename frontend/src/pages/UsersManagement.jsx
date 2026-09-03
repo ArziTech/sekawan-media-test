@@ -278,8 +278,8 @@ export function UsersManagement() {
 
           <Button
             type="button"
+            size="sm"
             onClick={handleOpenCreateModal}
-            className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs"
           >
             <UserPlus className="w-4 h-4" />
             <span>Tambah User Baru</span>
@@ -617,8 +617,8 @@ export function UsersManagement() {
                 </Button>
                 <Button
                   type="submit"
+                  size="sm"
                   disabled={saveMutation.isPending}
-                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {saveMutation.isPending
@@ -666,7 +666,6 @@ export function UsersManagement() {
               size="sm"
               disabled={deleteMutation.isPending}
               onClick={() => deleteMutation.mutate(deletingUser.id)}
-              className="font-bold text-xs gap-1.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {deleteMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Pengguna'}

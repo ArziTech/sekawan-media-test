@@ -330,3 +330,51 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - **Laporan & Ekspor:** [`frontend/src/pages/Reports.jsx`](frontend/src/pages/Reports.jsx) (parameter filter via TanStack Query dan dropdown shadcn Select).
   - **Dashboard Monitoring:** [`frontend/src/pages/Dashboard.jsx`](frontend/src/pages/Dashboard.jsx), [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx), [`frontend/src/pages/BranchDetail.jsx`](frontend/src/pages/BranchDetail.jsx) (migrasi data fetching ke TanStack Query dan penggantian native select ke shadcn Select).
 - Seluruh pengujian build production Vite lulus tanpa error dan perubahan telah di-push ke branch `main`.
+
+## [2026-09-03] feat | Integrasi Features Section dengan Hover Effects pada Landing Page
+
+- Menginstal `@tabler/icons-react` untuk iconography dinamis.
+- Membuat komponen [`frontend/src/components/ui/feature-section-with-hover-effects.jsx`](frontend/src/components/ui/feature-section-with-hover-effects.jsx) dengan grid 8 kartu fitur, efek hover interaktif (*gradient backdrop*, *indicator bar*, *border highlights*, dan transisi warna aksen amber/slate).
+- Menyesuaikan 8 fitur agar selaras dengan tema sistem armada tambang nikel:
+  1. **Pemesanan Multi-Wilayah** (8 wilayah operasional: 1 HQ Jakarta, 1 Cabang Kendari, 6 Blok Tambang)
+  2. **Persetujuan Berjenjang 2 Level** (Supervisor L1 $\rightarrow$ Kepala Pool/GM L2)
+  3. **Visualisasi Grafik Real-Time** (Chart.js analitik frekuensi, komposisi, dan BBM)
+  4. **Laporan & Ekspor Excel (.xlsx)** (PhpSpreadsheet berstempel tanggal)
+  5. **100% Audit Trail & Log Aktivitas** (ActivityLogger snapshot JSON & IP)
+  6. **Monitoring Konsumsi BBM** (Liter, rasio KM/L, biaya, odometer)
+  7. **Jadwal Servis & Perawatan** (Perawatan armada berkala & bengkel)
+  8. **Otorisasi Ketat & Sanctum Guard** (Role-based access control Admin vs Approver)
+- Memasang section `#features` pada [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx) dan menambahkan tautan menu **"Fitur Unggulan"** di navbar.
+- Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
+- Kompilasi build frontend sukses tanpa galat.
+
+## [2026-09-03] fix | Perbaikan Format, Tata Letak, dan Styling Ekspor Microsoft Excel (.xlsx)
+
+- **Masalah:** Ekspor Excel pada backend mengalami *Fatal Error* karena pemanggilan metode usang `setCellValueByColumnAndRow()` pada `PhpSpreadsheet` versi terbaru, menyebabkan sistem *fallback* ke generator frontend SheetJS yang menghasilkan lembar kerja mentah, teks terpotong, tanpa styling, dan tanpa identitas laporan.
+- **Perubahan Backend (`ReportController.php` via PhpSpreadsheet):**
+  - Mengganti sintaks cell coordinate dengan notasi modern yang didukung penuh.
+  - Menambahkan *Title Banner* resmi berlatar Slate-800 (`#1E293B`) dengan font putih tebal 13pt (`A1:V1`).
+  - Menambahkan *Metadata Banner* (`A2:V2`) dengan informasi rentang periode filter, stempel waktu cetak (*timestamp*), dan jumlah transaksi.
+  - Menata *Table Header* berlatar Deep Navy (`#1E3A8A`) dengan teks putih tebal, perataan tengah, dan mengaktifkan fitur *AutoFilter* Excel (`A4:V4`).
+  - Mengaktifkan *Freeze Panes* pada baris 5 (`A5`) agar header tabel tetap melayang saat digulir (*scroll*).
+  - Menerapkan *Zebra Striping* (baris genap `#F8FAFC`, ganjil `#FFFFFF`) dan garis batas tabel (*thin borders* `#CBD5E1`).
+  - Merapikan perataan sel (*alignment*) sesuai tipe data (tengah untuk kode/tanggal/status, kiri untuk nama/departemen/catatan, kanan untuk angka).
+  - Memformat angka numerik BBM (`#,##0.00`) dan nominal Rupiah (`#,##0`).
+  - Menerjemahkan seluruh kode status mentah (*enum*) ke dalam label deskriptif bahasa Indonesia.
+  - Menambahkan baris ringkasan `TOTAL KESELURUHAN` di akhir tabel dengan formula dinamis Excel `=SUM(...)` dan garis ganda bawah (*double bottom border*).
+  - Mengatur lebar kolom optimal (6–28 karakter) dengan *safety padding* sehingga tidak ada teks terpotong (*no clipped text*).
+- **Perubahan Frontend (`Reports.jsx` via SheetJS Fallback):**
+  - Memperbarui `handleExportExcel` untuk memicu unduhan file biner backend secara andal.
+  - Memperbaiki konfigurasi *fallback* client dengan lebar kolom `ws['!cols']` dan pemformatan teks terstruktur.
+- **Pengujian & Verifikasi:**
+  - Membuat automated feature test `ReportExportTest.php` (2 test, 7 assertion, 100% pass).
+  - Verifikasi struktur spreadsheet via CLI PhpSpreadsheet reader (Sheet Title, Dimensions, Borders, FreezePane A5, Formula SUM).
+  - Verifikasi build produksi Vite (`npm run build` sukses).
+
+
+
+## [2026-09-03] refactor | Standarisasi dan Pembersihan Tombol UI ke Default Component Props
+
+- Menghapus seluruh override manual styling warna background (`bg-amber-500`, `text-slate-950`, `hover:bg-amber-400`, dll.) pada elemen `<Button>` dan `buttonVariants()` di seluruh modul frontend.
+- Mengembalikan konsistensi penuh pada varian dan ukuran bawaan komponen shadcn/ui [`frontend/src/components/ui/button.jsx`](frontend/src/components/ui/button.jsx) (`variant="default"`, `variant="destructive"`, `variant="destructiveOutline"`, `variant="emerald"`, `variant="blue"`, `size="sm"`, `size="xs"`).
+- File yang dibersihkan: [`Drivers.jsx`](frontend/src/pages/Drivers.jsx), [`Vehicles.jsx`](frontend/src/pages/Vehicles.jsx), [`UsersManagement.jsx`](frontend/src/pages/UsersManagement.jsx), [`FuelLogs.jsx`](frontend/src/pages/FuelLogs.jsx), [`ServiceLogs.jsx`](frontend/src/pages/ServiceLogs.jsx), [`Bookings.jsx`](frontend/src/pages/Bookings.jsx), [`Approvals.jsx`](frontend/src/pages/Approvals.jsx), [`Reports.jsx`](frontend/src/pages/Reports.jsx), [`Dashboard.jsx`](frontend/src/pages/Dashboard.jsx), [`BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx).

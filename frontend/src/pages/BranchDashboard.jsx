@@ -218,7 +218,6 @@ export function BranchDashboard() {
             variant="ghost"
             size="xs"
             onClick={() => navigate(`/branch-dashboard/${reg.id}`)}
-            className="text-[11px] font-semibold text-muted-foreground hover:text-amber-500 gap-1 h-7 px-2 hover:bg-amber-500/10"
           >
             <span>Lihat Detail Wilayah</span>
             <ArrowRight className="w-3 h-3" />
@@ -433,7 +432,6 @@ export function BranchDashboard() {
                             variant="outline"
                             size="xs"
                             onClick={() => navigate(`/branch-dashboard/${r.id}`)}
-                            className="text-[11px] font-semibold gap-1 h-7 px-2 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30"
                           >
                             <span>Detail</span>
                             <ArrowRight className="w-2.5 h-2.5" />

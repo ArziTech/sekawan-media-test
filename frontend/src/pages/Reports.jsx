@@ -89,39 +89,118 @@ export const Reports = () => {
     setOwnershipType('all');
   };
 
+  const statusLabelMap = {
+    pending_level_1: 'Menunggu Persetujuan L1',
+    pending_level_2: 'Menunggu Persetujuan L2',
+    approved: 'Disetujui',
+    in_use: 'Sedang Digunakan',
+    completed: 'Selesai',
+    rejected: 'Ditolak',
+    cancelled: 'Dibatalkan',
+  };
+
   const handleExportExcel = async () => {
     setDownloading(true);
     try {
-      const excelData = bookings.map((b, index) => ({
-        'No.': index + 1,
-        'Kode Pemesanan': b.booking_code,
-        'Nama Pemohon': b.requester_name,
-        'Divisi': b.department,
-        'Kendaraan': b.vehicle?.name || '-',
-        'Plat Nomor': b.vehicle?.license_plate || '-',
-        'Tipe Kendaraan': b.vehicle?.type === 'passenger' ? 'Penumpang' : 'Barang',
-        'Kepemilikan': b.vehicle?.ownership_type === 'owned' ? 'Milik Sendiri' : 'Sewa',
-        'Supir': b.driver?.name || 'Tanpa Supir',
-        'Wilayah Asal': b.origin_region?.name || '-',
-        'Wilayah Tujuan': b.destination_region?.name || '-',
-        'Tanggal Mulai': b.start_date,
-        'Tanggal Selesai': b.end_date,
-        'Status': b.status,
-        'Odometer Awal': b.start_odometer || 0,
-        'Odometer Akhir': b.end_odometer || 0,
-        'Keperluan': b.purpose,
-      }));
+      // 1. Ekspor melalui Backend PhpSpreadsheet (Styling resmi, Header Navy, Zebra Striping, Formula SUM)
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      if (status !== 'all') params.append('status', status);
+      if (regionId !== 'all') params.append('region_id', regionId);
+      if (vehicleType !== 'all') params.append('vehicle_type', vehicleType);
+      if (ownershipType !== 'all') params.append('ownership_type', ownershipType);
 
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(excelData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Laporan Pemesanan');
+      const response = await api.get(`/reports/export/excel?${params.toString()}`, {
+        responseType: 'blob',
+      });
 
-      const fileName = `Laporan_Pemesanan_Tambang_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-      toast.success('Laporan berhasil diexport ke format Excel!');
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Laporan_Pemesanan_Kendaraan_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      toast.success('Laporan Excel resmi berhasil diunduh!');
     } catch (err) {
-      console.error(err);
-      toast.error('Gagal mengekspor laporan ke Excel.');
+      console.warn('Backend export fallback to SheetJS client generator:', err);
+      // 2. Fallback ke Client SheetJS dengan lebar kolom rapi dan format terstruktur
+      try {
+        const excelData = bookings.map((b, index) => {
+          const l1 = b.approvals?.find((a) => a.approval_level === 1);
+          const l2 = b.approvals?.find((a) => a.approval_level === 2);
+          const liters = b.fuel_logs?.reduce((acc, f) => acc + parseFloat(f.liters || 0), 0) || 0;
+          const cost = b.fuel_logs?.reduce((acc, f) => acc + parseFloat(f.total_cost || 0), 0) || 0;
+
+          return {
+            'No.': index + 1,
+            'Kode Booking': b.booking_code,
+            'Tgl Mulai': b.start_date ? new Date(b.start_date).toLocaleString('id-ID') : '-',
+            'Tgl Selesai': b.end_date ? new Date(b.end_date).toLocaleString('id-ID') : '-',
+            'Nama Pemohon': b.requester_name,
+            'Departemen': b.requester_department || b.department || '-',
+            'Lokasi Asal': b.origin_region?.name || '-',
+            'Lokasi Tujuan': b.destination_region?.name || '-',
+            'Kendaraan': b.vehicle?.name || '-',
+            'No. Plat': b.vehicle?.license_plate || '-',
+            'Tipe Armada': b.vehicle?.type === 'passenger' ? 'Angkutan Orang' : 'Angkutan Barang',
+            'Kepemilikan': b.vehicle?.ownership_type === 'owned' ? 'Milik Sendiri' : `Sewa (${b.vehicle?.rental_company?.name || 'Vendor'})`,
+            'Nama Driver': b.driver?.name || 'Tanpa Supir',
+            'Status Booking': statusLabelMap[b.status] || b.status,
+            'Approver L1': l1?.approver?.name || '-',
+            'Status L1': l1?.status ? (l1.status === 'approved' ? 'Disetujui' : l1.status === 'rejected' ? 'Ditolak' : 'Menunggu') : '-',
+            'Catatan L1': l1?.notes || '-',
+            'Approver L2': l2?.approver?.name || '-',
+            'Status L2': l2?.status ? (l2.status === 'approved' ? 'Disetujui' : l2.status === 'rejected' ? 'Ditolak' : 'Menunggu') : '-',
+            'Catatan L2': l2?.notes || '-',
+            'Total BBM (Liter)': liters,
+            'Biaya BBM (Rp)': cost,
+          };
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+
+        // Lebar kolom rapi agar tidak terpotong
+        ws['!cols'] = [
+          { wch: 6 },  // No
+          { wch: 18 }, // Kode Booking
+          { wch: 18 }, // Tgl Mulai
+          { wch: 18 }, // Tgl Selesai
+          { wch: 24 }, // Nama Pemohon
+          { wch: 22 }, // Departemen
+          { wch: 22 }, // Lokasi Asal
+          { wch: 22 }, // Lokasi Tujuan
+          { wch: 24 }, // Kendaraan
+          { wch: 16 }, // No Plat
+          { wch: 18 }, // Tipe Armada
+          { wch: 20 }, // Kepemilikan
+          { wch: 20 }, // Nama Driver
+          { wch: 25 }, // Status Booking
+          { wch: 22 }, // Approver L1
+          { wch: 16 }, // Status L1
+          { wch: 28 }, // Catatan L1
+          { wch: 22 }, // Approver L2
+          { wch: 16 }, // Status L2
+          { wch: 28 }, // Catatan L2
+          { wch: 18 }, // Total BBM
+          { wch: 20 }, // Biaya BBM
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Laporan Pemesanan');
+        const fileName = `Laporan_Pemesanan_Kendaraan_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        toast.success('Laporan berhasil diekspor ke format Excel!');
+      } catch (fallbackErr) {
+        console.error('Fallback export error:', fallbackErr);
+        toast.error('Gagal mengekspor laporan ke Excel.');
+      }
     } finally {
       setDownloading(false);
     }
@@ -155,10 +234,10 @@ export const Reports = () => {
           </Button>
 
           <Button
+            variant="emerald"
+            size="sm"
             onClick={handleExportExcel}
             disabled={downloading || bookings.length === 0}
-            size="sm"
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs gap-1.5 h-9 shadow-xs"
           >
             <Download className="w-4 h-4" />
             <span>{downloading ? 'Mengekspor...' : 'Ekspor ke Excel (.xlsx)'}</span>

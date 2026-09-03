@@ -205,7 +205,6 @@ export const Drivers = () => {
             <Button
               onClick={handleOpenAdd}
               size="sm"
-              className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Supir</span>
@@ -467,8 +466,8 @@ export const Drivers = () => {
                 </Button>
                 <Button
                   type="submit"
+                  size="sm"
                   disabled={saveMutation.isPending}
-                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {saveMutation.isPending ? 'Menyimpan...' : editingDriver ? 'Simpan Perubahan' : 'Daftarkan Supir'}
@@ -512,7 +511,6 @@ export const Drivers = () => {
               size="sm"
               disabled={deleteMutation.isPending}
               onClick={() => deleteMutation.mutate(deletingDriver.id)}
-              className="font-bold text-xs gap-1.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {deleteMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Supir'}

@@ -287,7 +287,7 @@ export const Dashboard = () => {
           {isAdmin ? (
             <Link
               to="/bookings"
-              className={cn(buttonVariants({ size: "sm" }), "bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs")}
+              className={buttonVariants({ size: "sm" })}
             >
               <Plus className="w-4 h-4" />
               <span>Buat Pemesanan</span>
@@ -295,7 +295,7 @@ export const Dashboard = () => {
           ) : (
             <Link
               to="/approvals"
-              className={cn(buttonVariants({ size: "sm" }), "bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs")}
+              className={buttonVariants({ size: "sm" })}
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Buka Portal Approval</span>
@@ -320,7 +320,7 @@ export const Dashboard = () => {
           </div>
           <Link
             to="/approvals"
-            className={cn(buttonVariants({ size: "sm" }), "bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs shrink-0")}
+            className={buttonVariants({ size: "sm" })}
           >
             Proses Sekarang &rarr;
           </Link>

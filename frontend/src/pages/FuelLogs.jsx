@@ -192,7 +192,6 @@ export const FuelLogs = () => {
             <Button
               onClick={handleOpenAdd}
               size="sm"
-              className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5 h-9 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Catat Pengisian BBM</span>
@@ -491,8 +490,8 @@ export const FuelLogs = () => {
                 </Button>
                 <Button
                   type="submit"
+                  size="sm"
                   disabled={createMutation.isPending}
-                  className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold text-xs gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {createMutation.isPending ? 'Menyimpan...' : 'Simpan Transaksi BBM'}
