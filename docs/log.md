@@ -487,3 +487,9 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 
 - Memperbaiki query relasi eager loading `fuelLogs` pada [`backend/app/Http/Controllers/Api/VehicleController.php`](backend/app/Http/Controllers/Api/VehicleController.php) dari `latest('fuel_date')` menjadi `latest('log_date')` dan `sum('cost')` menjadi `sum('total_cost')` sesuai skema tabel `fuel_logs`.
 - Memperbaiki mapping data bahan bakar pada modal detail [`frontend/src/pages/Vehicles.jsx`](frontend/src/pages/Vehicles.jsx) untuk menyelesaikan HTTP 500 error saat mengakses `GET /api/vehicles/{id}`.
+
+## [2026-09-03] fix | Eksekusi Migration Penambahan Kolom Timestamps & Status Cancelled pada Database MySQL
+
+- Menambahkan file migration [`backend/database/migrations/2026_09_03_000010_add_timestamps_and_cancelled_to_service_logs_table.php`](backend/database/migrations/2026_09_03_000010_add_timestamps_and_cancelled_to_service_logs_table.php).
+- Menjalankan `php artisan migrate` pada container `sekawan_app` untuk menambahkan kolom `scheduled_at`, `in_progress_at`, `completed_at`, dan `cancelled_at` serta memperluas enum status MySQL dengan nilai `'cancelled'`.
+- Menyelesaikan error `SQLSTATE[42S22]: Unknown column 'cancelled_at' in 'field list'` saat pembaruan status servis.
