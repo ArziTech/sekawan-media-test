@@ -7,10 +7,8 @@ echo ""
 if [ "$1" == "docker" ]; then
     echo "[*] Menjalankan via Docker Compose..."
     docker compose up -d --build
-    echo "[*] Menjalankan migrasi dan seeder database..."
-    docker compose exec app php artisan migrate:fresh --seed
     echo ""
-    echo "Aplikasi siap diakses pada: http://localhost:8080"
+    echo "Aplikasi siap diakses melalui Caddy Reverse Proxy di: https://link-app.gunawan05.pro (atau http://localhost:8000)"
     exit 0
 fi
 

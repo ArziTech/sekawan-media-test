@@ -16,10 +16,13 @@ Indeks per topik untuk `docs/*.md`. Satu file = satu topik (lihat aturan dokumen
 - **[monitoring-personil-bertugas.md](./monitoring-personil-bertugas.md)** = Monitoring personil supir/karyawan yang bertugas di lapangan, operasi armada, supir standby, dan integrasi BBM.
 - **[manajemen-user.md](./manajemen-user.md)** = Manajemen master akun pengguna (Admin & Approver Level 1 / 2), wewenang peran, dan penugasan wilayah.
 - **[panduan-penggunaan.md](./panduan-penggunaan.md)** = Panduan operasional aplikasi, alur booking, otorisasi approval, monitoring BBM/servis, export Excel, dan audit log.
+- **[panduan-deployment.md](./panduan-deployment.md)** = Panduan deployment Docker tanpa Nginx, topologi jaringan `rasava-network`, dan reverse proxy Caddy HTTPS.
 
 ---
 
 ## Rencana Implementasi
+
+- **[plans/deploy-caddy-rasava-network.md](../plans/deploy-caddy-rasava-network.md)** = Dokumen rencana migrasi deployment Caddy, docker network `rasava-network`, dan multi-stage build.
 
 - **[plans/pembatasan-otoritas-approver.md](../plans/pembatasan-otoritas-approver.md)** = Dokumen rencana pembatasan hak akses dan otoritas peran Approver (hanya akses /approvals dan riwayat milik sendiri).
 - **[plans/monitoring-personil-bertugas-dan-armada.md](../plans/monitoring-personil-bertugas-dan-armada.md)** = Dokumen rencana implementasi halaman monitoring personil bertugas, armada aktif, supir standby, dan operasi lapangan.

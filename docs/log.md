@@ -583,6 +583,15 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Menambahkan visualisasi berkas [`erd.png`](erd.png) ke Bagian 6 (*Skema Basis Data — Entity Relationship Diagram*) di [`README.md`](README.md) lengkap dengan ringkasan rincian seluruh 10 tabel basis data MySQL.
 - Menyesuaikan penomoran seksi dan bagan struktur direktori proyek pada [`README.md`](README.md).
 
+## [2026-09-03] deploy | Penyesuaian Docker Compose, Network `rasava-network`, dan Caddy Reverse Proxy
+
+- **Perubahan Konfigurasi:**
+  - Menghapus service Nginx standalone dari [`docker-compose.yml`](docker-compose.yml) dan mengalihkan seluruh traffic HTTP reverse proxy langsung ke Caddy di port 8000 via Docker network eksternal `rasava-network`.
+  - Memperbarui [`docker/php/Dockerfile`](docker/php/Dockerfile) menjadi multi-stage build (Stage 1: Node.js frontend builder, Stage 2: PHP 8.4 runtime) dan menambahkan skrip bootstrap otomatis [`docker/entrypoint.sh`](docker/entrypoint.sh).
+  - Mengonfigurasi SPA fallback handler pada [`backend/routes/web.php`](backend/routes/web.php) dan trust proxies pada [`backend/bootstrap/app.php`](backend/bootstrap/app.php).
+  - Menambahkan dokumen rencana [`plans/deploy-caddy-rasava-network.md`](../plans/deploy-caddy-rasava-network.md) dan dokumentasi panduan [`docs/panduan-deployment.md`](./panduan-deployment.md).
+
+
 
 
 
