@@ -286,3 +286,11 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Mendaftarkan rute `/users` di [`frontend/src/App.jsx`](frontend/src/App.jsx), menambahkan menu navigasi **"Manajemen User"** di [`frontend/src/components/app-sidebar.jsx`](frontend/src/components/app-sidebar.jsx), serta judul breadcrumb di [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx).
 - Membuat dokumentasi lengkap [`docs/manajemen-user.md`](docs/manajemen-user.md) dan memperbarui indeks [`docs/README.md`](docs/README.md).
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Pembatasan Data Pemesanan Berdasarkan Wilayah Cabang untuk Akun Approver
+
+- Memperbarui query pada [`backend/app/Http/Controllers/Api/BookingController.php`](backend/app/Http/Controllers/Api/BookingController.php) (`index` dan `show`) serta [`backend/app/Http/Controllers/Api/ReportController.php`](backend/app/Http/Controllers/Api/ReportController.php):
+  - Pengguna dengan peran selain admin (`role === 'approver'`) secara otomatis hanya melihat data transaksi pemesanan yang berkaitan langsung dengan wilayah cabang penugasannya (`region_id` asal atau `destination_region_id` tujuan sesuai `user.region_id`).
+  - Menolak akses detail pemesanan di luar wilayah cabang tugas approver dengan `403 Forbidden`.
+- Memperbarui antarmuka [`frontend/src/pages/Bookings.jsx`](frontend/src/pages/Bookings.jsx) untuk menampilkan badge wilayah penugasan approver pada header halaman.
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.

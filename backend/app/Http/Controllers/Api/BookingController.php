@@ -19,6 +19,8 @@ class BookingController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         $query = Booking::with([
             'originRegion',
             'destinationRegion',
@@ -28,6 +30,14 @@ class BookingController extends Controller
             'approvals.approver',
             'fuelLogs'
         ])->latest();
+
+        // If user is Approver, strictly restrict to bookings within their assigned branch / region
+        if (!$user->isAdmin() && $user->region_id) {
+            $query->where(function ($q) use ($user) {
+                $q->where('region_id', $user->region_id)
+                  ->orWhere('destination_region_id', $user->region_id);
+            });
+        }
 
         // Filters
         if ($request->filled('status')) {
@@ -179,8 +189,10 @@ class BookingController extends Controller
         ], 201);
     }
 
-    public function show($id): JsonResponse
+    public function show($id, Request $request): JsonResponse
     {
+        $user = $request->user();
+
         $booking = Booking::with([
             'originRegion',
             'destinationRegion',
@@ -190,6 +202,18 @@ class BookingController extends Controller
             'approvals.approver',
             'fuelLogs'
         ])->findOrFail($id);
+
+        if (!$user->isAdmin() && $user->region_id) {
+            $isAssignedApprover = $booking->approvals->contains('approver_user_id', $user->id);
+            $isRegional = $booking->region_id === $user->region_id || $booking->destination_region_id === $user->region_id;
+
+            if (!$isAssignedApprover && !$isRegional) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki hak akses untuk melihat rincian pemesanan di luar wilayah cabang tugas Anda.',
+                ], 403);
+            }
+        }
 
         return response()->json([
             'success' => true,

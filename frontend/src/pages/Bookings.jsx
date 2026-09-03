@@ -215,11 +215,21 @@ export const Bookings = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Pemesanan Kendaraan
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Pemesanan Kendaraan
+            </h1>
+            {!isAdmin && user?.region && (
+              <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-xs px-2.5 py-0.5 gap-1 font-semibold">
+                <MapPin className="w-3 h-3 text-blue-400" />
+                <span>{user.region.name}</span>
+              </Badge>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Kelola transaksi pemesanan, penugasan supir, dan tracking alur persetujuan bertingkat.
+            {isAdmin
+              ? 'Kelola transaksi pemesanan, penugasan supir, dan tracking alur persetujuan bertingkat.'
+              : `Daftar pemesanan kendaraan yang berkaitan dengan wilayah cabang/site tugas Anda (${user?.region?.name || 'Cabang'}).`}
           </p>
         </div>
 

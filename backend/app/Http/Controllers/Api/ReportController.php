@@ -34,6 +34,15 @@ class ReportController extends Controller
                   ->whereDate('start_date', '<=', $request->end_date);
         }
 
+        // Scope to approver's region if not admin
+        $user = $request->user();
+        if ($user && !$user->isAdmin() && $user->region_id) {
+            $query->where(function ($q) use ($user) {
+                $q->where('region_id', $user->region_id)
+                  ->orWhere('destination_region_id', $user->region_id);
+            });
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
