@@ -10,11 +10,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import { ModeToggle } from "@/components/mode-toggle";
 
 export function SiteHeader() {
   const location = useLocation();
+  const { isApprover } = useAuth();
   const [regions, setRegions] = useState([]);
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export function SiteHeader() {
         <Breadcrumb className="hidden sm:block">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard" className="text-xs text-muted-foreground hover:text-foreground">
+              <BreadcrumbLink href={isApprover ? "/approvals" : "/dashboard"} className="text-xs text-muted-foreground hover:text-foreground">
                 Nickel Fleet
               </BreadcrumbLink>
             </BreadcrumbItem>

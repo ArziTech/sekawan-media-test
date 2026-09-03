@@ -56,13 +56,18 @@ Dokumen ini memuat panduan lengkap tata cara pengoperasian aplikasi web pemesana
 
 ---
 
-## 4. Tata Cara Melakukan Persetujuan (Approver)
+## 4. Tata Cara Melakukan Persetujuan & Hak Akses (Approver)
 
-1. Masuk sebagai akun **Approver Level 1** atau **Approver Level 2**.
-2. Buka menu **Portal Persetujuan**.
-3. Pada tab **"Menunggu Keputusan"**, klik tombol **"Setujui"** atau **"Tolak"** pada kartu permohonan.
-4. Masukkan catatan otorisasi atau alasan penolakan pada modal konfirmasi, lalu klik tombol konfirmasi.
-5. Permohonan yang disetujui Level 1 akan otomatis naik statusnya ke Level 2. Permohonan yang disetujui Level 2 akan berstatus `approved` dan siap diberangkatkan.
+1. **Akses Khusus Halaman Otorisasi:**
+   - Pengguna dengan peran **Approver** memiliki hak akses yang difokuskan khusus ke **Portal Persetujuan (`/approvals`)**.
+   - Sidebar navigasi hanya menampilkan menu *Portal Persetujuan* beserta badge jumlah antrean yang ditujukan kepada approver terkait. Akses ke halaman lain (dashboard, booking, armada, laporan) dibatasi secara otomatis.
+2. **Tab "Menunggu Keputusan":**
+   - Approver hanya melihat permohonan pemesanan yang **secara spesifik ditugaskan kepadanya** dan telah tiba pada gilirannya (Level 1 saat status `pending_level_1`, atau Level 2 saat status `pending_level_2` setelah Level 1 disetujui).
+   - Klik tombol **"Setujui Permohonan"** (hijau solid) atau **"Tolak"** (merah) pada kartu permohonan.
+   - Masukkan catatan otorisasi atau alasan penolakan (wajib minimal 5 karakter untuk penolakan), lalu konfirmasi aksi.
+3. **Tab "Riwayat Persetujuan":**
+   - Menampilkan rekam jejak keputusan otorisasi yang **pernah dilakukan oleh approver yang sedang login** (waktu otorisasi, keputusan disetujui/ditolak, catatan otorisasi, dan status akhir pemesanan).
+   - Approver tidak melihat riwayat persetujuan milik approver lain.
 
 ---
 

@@ -182,4 +182,58 @@ $actCount = ActivityLog::count();
 assert($actCount > 0, 'Activity logs must exist');
 echo "    -> Activity logs recorded ({$actCount} records) OK!\n\n";
 
+// 7. Test Role-Based Access Control (RBAC) Endpoint Restrictions
+echo "[7] Testing Role-Based Access Control (RBAC) Protections...\n";
+
+function testEndpointAuth($user, $uri, $method = 'GET') {
+    \Laravel\Sanctum\Sanctum::actingAs($user, ['*']);
+    $request = \Illuminate\Http\Request::create($uri, $method);
+    $request->headers->set('Accept', 'application/json');
+    $response = app()->handle($request);
+    return $response->getStatusCode();
+}
+
+// Approver must be blocked (403) from admin-only routes
+assert(testEndpointAuth($app1, '/api/dashboard/stats') === 403, 'Approver must be forbidden from /api/dashboard/stats');
+assert(testEndpointAuth($app1, '/api/duties') === 403, 'Approver must be forbidden from /api/duties');
+assert(testEndpointAuth($app1, '/api/bookings') === 403, 'Approver must be forbidden from /api/bookings');
+assert(testEndpointAuth($app1, '/api/bookings', 'POST') === 403, 'Approver must be forbidden from POST /api/bookings');
+assert(testEndpointAuth($app1, '/api/reports/bookings') === 403, 'Approver must be forbidden from /api/reports/bookings');
+assert(testEndpointAuth($app1, '/api/vehicles') === 403, 'Approver must be forbidden from /api/vehicles');
+assert(testEndpointAuth($app1, '/api/vehicles/available') === 403, 'Approver must be forbidden from /api/vehicles/available');
+assert(testEndpointAuth($app1, '/api/drivers') === 403, 'Approver must be forbidden from /api/drivers');
+assert(testEndpointAuth($app1, '/api/drivers/available') === 403, 'Approver must be forbidden from /api/drivers/available');
+assert(testEndpointAuth($app1, '/api/fuel-logs') === 403, 'Approver must be forbidden from /api/fuel-logs');
+assert(testEndpointAuth($app1, '/api/service-logs') === 403, 'Approver must be forbidden from /api/service-logs');
+assert(testEndpointAuth($app1, '/api/activity-logs') === 403, 'Approver must be forbidden from /api/activity-logs');
+assert(testEndpointAuth($app1, '/api/users') === 403, 'Approver must be forbidden from /api/users');
+
+// Admin must be allowed (200)
+assert(testEndpointAuth($admin, '/api/dashboard/stats') === 200, 'Admin must be allowed on /api/dashboard/stats');
+assert(testEndpointAuth($admin, '/api/duties') === 200, 'Admin must be allowed on /api/duties');
+assert(testEndpointAuth($admin, '/api/bookings') === 200, 'Admin must be allowed on /api/bookings');
+assert(testEndpointAuth($admin, '/api/reports/bookings') === 200, 'Admin must be allowed on /api/reports/bookings');
+assert(testEndpointAuth($admin, '/api/vehicles') === 200, 'Admin must be allowed on /api/vehicles');
+assert(testEndpointAuth($admin, '/api/drivers') === 200, 'Admin must be allowed on /api/drivers');
+assert(testEndpointAuth($admin, '/api/fuel-logs') === 200, 'Admin must be allowed on /api/fuel-logs');
+assert(testEndpointAuth($admin, '/api/service-logs') === 200, 'Admin must be allowed on /api/service-logs');
+assert(testEndpointAuth($admin, '/api/activity-logs') === 200, 'Admin must be allowed on /api/activity-logs');
+
+// Approver must be allowed on approval & auth routes
+assert(testEndpointAuth($app1, '/api/auth/me') === 200, 'Approver allowed on /api/auth/me');
+assert(testEndpointAuth($app1, '/api/approvals/pending') === 200, 'Approver allowed on /api/approvals/pending');
+assert(testEndpointAuth($app1, '/api/approvals/history') === 200, 'Approver allowed on /api/approvals/history');
+
+// Test History Isolation: verify approver only gets their own history
+\Laravel\Sanctum\Sanctum::actingAs($app1, ['*']);
+$reqHistory = \Illuminate\Http\Request::create('/api/approvals/history', 'GET');
+$reqHistory->headers->set('Accept', 'application/json');
+$resHistory = app()->handle($reqHistory);
+$historyData = json_decode($resHistory->getContent(), true)['data']['data'];
+foreach ($historyData as $histItem) {
+    assert($histItem['approver_user_id'] === $app1->id, 'History item must strictly belong to the logged-in approver');
+}
+
+echo "    -> RBAC Middleware Protections & Data Isolation (403 Forbidden for restricted routes, 200 OK for Approvals, History isolated per user) OK!\n\n";
+
 echo "=== ALL E2E VERIFICATION CHECKS PASSED SUCCESSFULLY! ===\n";

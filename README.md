@@ -31,8 +31,6 @@ Semua akun telah dibuat otomatis melalui database seeder dengan kata sandi yang 
 | **Approver (Level 2)** | **Ir. Hartono Gunawan, M.M.** *(Kepala Pool & GM Tambang)* | `approver2@tambang.com` | `password123` | Melakukan otorisasi persetujuan final tahap kedua (Level 2) setelah Level 1 disetujui. |
 | **Approver (Level 1 Site)** | **Rahmat Hidayat, M.T.** *(Site Manager Pomalaa)* | `approver1.site@tambang.com` | `password123` | Penyetujui Level 1 untuk wilayah operasional Tambang A (Pomalaa). |
 
-> **Fitur Quick Switcher:** Pada antarmuka aplikasi, tersedia fitur **"1-Klik Ganti Akun Demo"** di pojok kanan atas Navbar untuk mempermudah pengujian multi-role tanpa perlu logout-login manual.
-
 ---
 
 ## 3. Cakupan Wilayah & Karakteristik Armada Tambang
@@ -101,37 +99,55 @@ Akses aplikasi melalui URL Vite: [http://localhost:5173](http://localhost:5173) 
 
 ---
 
-## 5. Alur Kerja Fitur Utama Aplikasi
+## 5. Diagram Alur Proses — Activity Diagram (Swimlane Workflow)
 
-### A. Alur Pemesanan & Persetujuan Berjenjang (Multi-Level Approval)
-```
-[Admin Buat Pemesanan]
-       │
-       ▼ (Status: pending_level_1)
-[Persetujuan Level 1: Supervisor / Atasan]
-       │
-       ├─► [DITOLAK] ──► Status: rejected (Selesai/Batal)
-       │
-       ▼ [DISETUJUI] (Status: pending_level_2)
-[Persetujuan Level 2: Kepala Pool / GM Operasional]
-       │
-       ├─► [DITOLAK] ──► Status: rejected (Selesai/Batal)
-       │
-       ▼ [DISETUJUI] (Status: approved)
-[Admin Klik "Mulai Perjalanan"] ──► Status: in_use (Mobil & Driver aktif bertugas)
-       │
-       ▼
-[Admin Klik "Selesaikan Perjalanan"] ──► Input Odometer Akhir ──► Status: completed
-```
+Diagram alur swimlane mencakup interaksi dan tanggung jawab antara 3 aktor utama dalam siklus pemesanan kendaraan operasional tambang: **Admin Pool Kendaraan**, **Approver Level 1 (Supervisor)**, dan **Approver Level 2 (Kepala Pool / General Manager)**:
 
-### B. Dashboard Monitoring & Visualisasi Grafik
+<p align="center">
+  <img src="./activity-diagram.png" alt="Activity Diagram Alur Pemesanan & Persetujuan Berjenjang" width="800" />
+</p>
+
+### Penjelasan Tahapan Alur:
+1. **Pembuatan Request Booking (Admin Pool):** Admin memasukkan formulir pemesanan, memilih kendaraan dan driver, serta menunjuk Approver L1 & L2 (Status awal: `pending_level_1`).
+2. **Review & Keputusan Level 1 (Approver 1):** Supervisor memeriksa kelayakan. Jika ditolak, status beralih menjadi `rejected`. Jika disetujui, diteruskan ke Level 2 (Status: `pending_level_2`).
+3. **Review & Keputusan Level 2 (Approver 2):** Kepala Pool/GM memberikan persetujuan final. Jika ditolak, status beralih ke `rejected`. Jika disetujui, pemesanan resmi disahkan (Status: `approved`).
+4. **Mulai Perjalanan (Admin Pool):** Admin mencatat odometer awal saat armada diberangkatkan (Status: `in_use`).
+5. **Selesai Perjalanan (Admin Pool):** Admin mencatat odometer akhir saat kepulangan. Total jarak tempuh (KM) dihitung otomatis dan status kendaraan kembali tersedia (Status: `completed`).
+
+---
+
+## 6. Skema Basis Data — Entity Relationship Diagram (ERD)
+
+Arsitektur basis data relasional ternormalisasi (**MySQL 8.0**) yang menghubungkan 10 entitas tabel dengan integritas referensial (*Foreign Key Constraints*), audit trail menyeluruh, dan optimasi indeks:
+
+<p align="center">
+  <img src="./erd.png" alt="Entity Relationship Diagram (ERD) Sistem Pemesanan Kendaraan Tambang" width="1000" />
+</p>
+
+### Ringkasan 10 Tabel Basis Data:
+1. **`users`**: Data autentikasi akun, peran (*admin* / *approver*), *approval tier* (1 / 2), dan penempatan kantor/tambang.
+2. **`regions`**: 8 lokasi operasional (1 Kantor Pusat Jakarta, 1 Kantor Cabang Kendari, 6 Blok Tambang Nikel).
+3. **`rental_companies`**: Vendor penyedia kendaraan sewa operasional tambang.
+4. **`vehicles`**: Inventaris armada angkutan orang & barang, status kepemilikan (milik sendiri vs sewa), konsumsi BBM, dan status unit.
+5. **`drivers`**: Master data supir operasional, nomor SIM, masa berlaku lisensi, dan status ketersediaan.
+6. **`bookings`**: Transaksi utama pemesanan kendaraan, rute asal/tujuan, rentang tanggal dinas, status alur, serta odometer awal/akhir.
+7. **`booking_approvals`**: Rekam jejak audit persetujuan bertingkat (Level 1 & Level 2), catatan approver, dan waktu eksekusi.
+8. **`fuel_logs`**: Catatan riwayat pengisian BBM (volume liter, biaya rupiah, dan odometer saat pengisian).
+9. **`service_logs`**: Catatan riwayat servis rutin & perbaikan kendaraan, jenis layanan, dan biaya bengkel.
+10. **`activity_logs`**: Jejak audit sistem (*audit trail*) yang merekam seluruh aksi pengguna, modul, IP address, dan payload snapshot.
+
+---
+
+## 7. Fitur Utama & Modul Operasional
+
+### A. Dashboard Monitoring & Visualisasi Grafik
 Dashboard menyajikan 3 grafik visual dinamis berbasis **Chart.js**:
 1. **Frekuensi Pemakaian Kendaraan (Bar Chart):** Memantau tren jumlah perjalanan dinas per bulan dalam 6 bulan terakhir.
 2. **Komposisi Armada Tambang (Doughnut Chart):** Membandingkan proporsi angkutan orang vs barang serta status milik sendiri vs sewa.
 3. **Tren Konsumsi BBM & Biaya (Line Chart):** Memantau volume liter konsumsi bahan bakar dan biaya operasional bulanan.
 4. **Summary KPI Cards:** Menampilkan jumlah persetujuan pending, unit kendaraan aktif jalan, unit tersedia, dan total BBM bulan ini.
 
-### C. Laporan Periodik & Export Microsoft Excel (.xlsx)
+### B. Laporan Periodik & Export Microsoft Excel (.xlsx)
 1. Buka menu **Laporan & Export Excel**.
 2. Tentukan parameter filter:
    - Rentang Tanggal Mulai s/d Selesai
@@ -142,7 +158,7 @@ Dashboard menyajikan 3 grafik visual dinamis berbasis **Chart.js**:
 3. Pratinjau data tampil secara interaktif dilengkapi kalkulasi total liter BBM dan total biaya.
 4. Klik tombol hijau **"Export ke Excel (.xlsx)"** untuk mengunduh laporan spreadsheet berformat resmi dengan header berstempel tanggal dan formula kalkulasi otomatis.
 
-### D. Log Aktivitas Aplikasi (Audit Trail)
+### C. Log Aktivitas Aplikasi (Audit Trail)
 Setiap tindakan pengguna dicatat secara otomatis pada tabel log:
 - Pembuatan pemesanan baru
 - Persetujuan Level 1 & Level 2 / Penolakan
@@ -153,7 +169,7 @@ Setiap tindakan pengguna dicatat secara otomatis pada tabel log:
 
 ---
 
-## 6. Struktur Direktori Project
+## 8. Struktur Direktori Project
 
 ```
 sekawan-media-test/
@@ -179,5 +195,7 @@ sekawan-media-test/
 │   ├── nginx/default.conf
 │   └── php/Dockerfile
 ├── docker-compose.yml        # Orchestrator Multi-Container (App, DB, Web)
+├── activity-diagram.png      # Gambar Visual Activity Diagram Swimlane
+├── erd.png                   # Gambar Visual Entity Relationship Diagram (ERD)
 └── README.md                 # Dokumentasi Utama Sistem
 ```

@@ -38,69 +38,59 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 
-    // Dashboard Analytics
-    Route::prefix('dashboard')->group(function () {
-        Route::get('/stats', [DashboardController::class, 'stats']);
-        Route::get('/charts', [DashboardController::class, 'charts']);
-        Route::get('/recent', [DashboardController::class, 'recent']);
-        Route::get('/regions', [DashboardController::class, 'regionalOverview']);
-        Route::get('/regions/{id}', [DashboardController::class, 'regionalDetail']);
-    });
-
-    // Master Regions & Rental Companies
-    Route::get('/regions', [RegionController::class, 'index']);
-
-    // Active Duties & Operations Monitoring
-    Route::get('/duties', [DutyController::class, 'index']);
-
-    // Bookings & Workflow
-    Route::get('/bookings', [BookingController::class, 'index']);
-    Route::get('/bookings/{id}', [BookingController::class, 'show']);
-
-    Route::middleware('admin')->group(function () {
-        Route::post('/bookings', [BookingController::class, 'store']);
-        Route::post('/bookings/{id}/start-trip', [BookingController::class, 'startTrip']);
-        Route::post('/bookings/{id}/complete-trip', [BookingController::class, 'completeTrip']);
-        Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
-    });
-
-    // Multi-Level Approvals Portal
+    // Multi-Level Approvals Portal (Accessible by Approver & Admin)
     Route::prefix('approvals')->group(function () {
         Route::get('/pending', [ApprovalController::class, 'pending']);
         Route::get('/history', [ApprovalController::class, 'history']);
         Route::post('/{id}/action', [ApprovalController::class, 'action']);
     });
 
-    // Master Vehicles
-    Route::get('/vehicles/available', [VehicleController::class, 'available']);
+    // Master Regions & Rental Companies (Read accessible)
+    Route::get('/regions', [RegionController::class, 'index']);
+
+    // Admin Only Routes: Dashboard, Duties, Bookings Management, Fleet, Reports, Logs
     Route::middleware('admin')->group(function () {
+        // Dashboard Analytics
+        Route::prefix('dashboard')->group(function () {
+            Route::get('/stats', [DashboardController::class, 'stats']);
+            Route::get('/charts', [DashboardController::class, 'charts']);
+            Route::get('/recent', [DashboardController::class, 'recent']);
+            Route::get('/regions', [DashboardController::class, 'regionalOverview']);
+            Route::get('/regions/{id}', [DashboardController::class, 'regionalDetail']);
+        });
+
+        // Active Duties & Operations Monitoring
+        Route::get('/duties', [DutyController::class, 'index']);
+
+        // Bookings Management & Workflow
+        Route::get('/bookings', [BookingController::class, 'index']);
+        Route::get('/bookings/{id}', [BookingController::class, 'show']);
+        Route::post('/bookings', [BookingController::class, 'store']);
+        Route::post('/bookings/{id}/start-trip', [BookingController::class, 'startTrip']);
+        Route::post('/bookings/{id}/complete-trip', [BookingController::class, 'completeTrip']);
+        Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
+
+        // Master Vehicles
+        Route::get('/vehicles/available', [VehicleController::class, 'available']);
         Route::apiResource('/vehicles', VehicleController::class)->except(['create', 'edit']);
-    });
 
-    // Master Drivers
-    Route::get('/drivers/available', [DriverController::class, 'available']);
-    Route::middleware('admin')->group(function () {
+        // Master Drivers
+        Route::get('/drivers/available', [DriverController::class, 'available']);
         Route::apiResource('/drivers', DriverController::class)->except(['create', 'edit']);
-    });
 
-    // Fuel Consumption Logs
-    Route::middleware('admin')->group(function () {
+        // Fuel Consumption Logs
         Route::get('/fuel-logs', [FuelLogController::class, 'index']);
         Route::post('/fuel-logs', [FuelLogController::class, 'store']);
-    });
 
-    // Maintenance & Service Schedules
-    Route::middleware('admin')->group(function () {
+        // Maintenance & Service Schedules
         Route::get('/service-logs', [ServiceLogController::class, 'index']);
         Route::post('/service-logs', [ServiceLogController::class, 'store']);
         Route::put('/service-logs/{id}/status', [ServiceLogController::class, 'updateStatus']);
-    });
 
-    // Periodic Reports
-    Route::get('/reports/bookings', [ReportController::class, 'bookings']);
+        // Periodic Reports
+        Route::get('/reports/bookings', [ReportController::class, 'bookings']);
 
-    // Audit Trail / Activity Logs
-    Route::middleware('admin')->group(function () {
+        // Audit Trail / Activity Logs & User Management
         Route::get('/activity-logs', [ActivityLogController::class, 'index']);
         Route::apiResource('/users', UserController::class)->except(['create', 'edit']);
     });

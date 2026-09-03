@@ -68,7 +68,9 @@ class ApprovalController extends Controller
             'booking.destinationRegion',
             'booking.vehicle',
             'booking.driver',
-            'booking.createdBy'
+            'booking.createdBy',
+            'booking.approvals.approver',
+            'approver'
         ])->where('status', '!=', 'pending')->latest('action_date');
 
         if (!$user->isAdmin()) {

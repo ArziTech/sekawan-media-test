@@ -32,8 +32,8 @@ import { Reports } from './pages/Reports';
 import { ActivityLogs } from './pages/ActivityLogs';
 import { UsersManagement } from './pages/UsersManagement';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, loading, isAdmin } = useAuth();
+const ProtectedRoute = ({ children, adminOnly = false, approverAllowed = false }) => {
+  const { user, loading, isAdmin, isApprover } = useAuth();
 
   if (loading) {
     return (
@@ -47,11 +47,23 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/login" replace />;
   }
 
+  // If user is Approver, they can ONLY access routes that have approverAllowed set to true
+  if (isApprover && !approverAllowed) {
+    return <Navigate to="/approvals" replace />;
+  }
+
   if (adminOnly && !isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={isApprover ? "/approvals" : "/dashboard"} replace />;
   }
 
   return children;
+};
+
+const FallbackRoute = () => {
+  const { user, loading, isApprover } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/" replace />;
+  return <Navigate to={isApprover ? "/approvals" : "/dashboard"} replace />;
 };
 
 export default function App() {
@@ -69,17 +81,59 @@ export default function App() {
                 {/* Authenticated routes wrapped in AppLayout */}
                 <Route
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute approverAllowed>
                       <AppLayout />
                     </ProtectedRoute>
                   }
                 >
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/branch-dashboard" element={<BranchDashboard />} />
-                  <Route path="/branch-dashboard/:id" element={<BranchDetail />} />
-                  <Route path="/duties" element={<Duties />} />
-                  <Route path="/bookings" element={<Bookings />} />
-                  <Route path="/approvals" element={<Approvals />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/branch-dashboard"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <BranchDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/branch-dashboard/:id"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <BranchDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/duties"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <Duties />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/bookings"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <Bookings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/approvals"
+                    element={
+                      <ProtectedRoute approverAllowed>
+                        <Approvals />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/vehicles"
                     element={
@@ -112,7 +166,14 @@ export default function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/reports" element={<Reports />} />
+                  <Route
+                    path="/reports"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <Reports />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/activity-logs"
                     element={
@@ -132,7 +193,7 @@ export default function App() {
                 </Route>
 
                 {/* Fallback */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<FallbackRoute />} />
               </Routes>
             </BrowserRouter>
           </AuthProvider>

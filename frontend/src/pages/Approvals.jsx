@@ -181,8 +181,8 @@ export const Approvals = () => {
   };
 
   const renderApprovalTimeline = (approvals = []) => {
-    const tier1 = approvals.find((a) => a.tier_level === 1);
-    const tier2 = approvals.find((a) => a.tier_level === 2);
+    const tier1 = approvals?.find((a) => a.approval_level === 1 || a.tier_level === 1);
+    const tier2 = approvals?.find((a) => a.approval_level === 2 || a.tier_level === 2);
 
     const getRoleTitle = (tier) => {
       return tier === 1
@@ -463,34 +463,47 @@ export const Approvals = () => {
                 <TableHeader>
                   <TableRow className="bg-muted/40 text-[11px] uppercase font-bold tracking-wider">
                     <TableHead className="py-3 px-4">No. Booking</TableHead>
+                    <TableHead className="py-3 px-4">Waktu Otorisasi</TableHead>
                     <TableHead className="py-3 px-4">Pemohon & Divisi</TableHead>
                     <TableHead className="py-3 px-4">Armada & Supir</TableHead>
+                    <TableHead className="py-3 px-4">Keputusan Otorisasi</TableHead>
+                    <TableHead className="py-3 px-4">Catatan Anda</TableHead>
                     <TableHead className="py-3 px-4">Status Pemesanan</TableHead>
-                    <TableHead className="py-3 px-4">Alur Persetujuan</TableHead>
-                    <TableHead className="py-3 px-4">Catatan Otorisasi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-border/60">
                   {loadingHistory ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                      <TableCell colSpan={7} className="py-12 text-center text-muted-foreground text-xs">
                         <div className="inline-block w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-2" />
                         <p>Memuat riwayat persetujuan...</p>
                       </TableCell>
                     </TableRow>
                   ) : historyList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
-                        Belum ada riwayat persetujuan yang tercatat.
+                      <TableCell colSpan={7} className="py-12 text-center text-muted-foreground text-xs">
+                        Belum ada riwayat persetujuan yang Anda proses.
                       </TableCell>
                     </TableRow>
                   ) : (
                     historyList.map((item) => {
                       const b = item.booking || item;
+                      const isApproved = item.status === 'approved';
+                      const isRejected = item.status === 'rejected';
+
                       return (
-                        <TableRow key={item.id || b.id} className="hover:bg-muted/30 transition-colors">
-                          <TableCell className="py-3.5 px-4 text-xs font-mono font-bold text-amber-500">
-                            {b.booking_code}
+                        <TableRow key={item.id} className="hover:bg-muted/30 transition-colors">
+                          <TableCell className="py-3.5 px-4 text-xs">
+                            <div className="font-mono font-bold text-amber-500">{b.booking_code}</div>
+                            {item.approval_level && (
+                              <div className="text-[10px] text-muted-foreground font-medium">Level {item.approval_level}</div>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs font-mono text-muted-foreground">
+                            {item.action_date ? new Date(item.action_date).toLocaleString('id-ID', {
+                              dateStyle: 'short',
+                              timeStyle: 'short',
+                            }) : '-'}
                           </TableCell>
                           <TableCell className="py-3.5 px-4 text-xs">
                             <div className="font-bold text-foreground">{b.requester_name}</div>
@@ -501,13 +514,27 @@ export const Approvals = () => {
                             <div className="text-[10px] text-muted-foreground">{b.driver?.name || 'Tanpa Supir'}</div>
                           </TableCell>
                           <TableCell className="py-3.5 px-4">
-                            <BookingStatusBadge status={b.status} />
+                            {isApproved && (
+                              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px] font-bold gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> Disetujui (L{item.approval_level || 1})
+                              </Badge>
+                            )}
+                            {isRejected && (
+                              <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/30 text-[10px] font-bold gap-1">
+                                <XCircle className="w-3 h-3" /> Ditolak (L{item.approval_level || 1})
+                              </Badge>
+                            )}
+                            {!isApproved && !isRejected && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {item.status}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-3.5 px-4 text-xs text-muted-foreground max-w-xs truncate italic">
+                            "{item.notes || '-'}"
                           </TableCell>
                           <TableCell className="py-3.5 px-4">
-                            {renderApprovalTimeline(b.approvals)}
-                          </TableCell>
-                          <TableCell className="py-3.5 px-4 text-xs text-muted-foreground max-w-xs truncate">
-                            {b.approvals?.map((a) => a.notes).filter(Boolean).join(' | ') || '-'}
+                            <BookingStatusBadge status={b.status} />
                           </TableCell>
                         </TableRow>
                       );

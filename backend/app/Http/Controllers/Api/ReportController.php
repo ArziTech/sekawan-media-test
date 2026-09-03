@@ -106,103 +106,199 @@ class ReportController extends Controller
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Laporan Pemesanan Kendaraan');
+        $sheet->setTitle('Laporan Pemesanan');
 
-        // Title Header
-        $sheet->setCellValue('A1', 'LAPORAN PERIODIK PEMESANAN & MONITORING KENDARAAN TAMBANG');
-        $sheet->mergeCells('A1:U1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('0F172A'));
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // Set default font to Calibri 10pt
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10);
 
-        $periodText = 'Periode: ' . ($request->filled('start_date') ? $request->start_date : 'Semua') . ' s/d ' . ($request->filled('end_date') ? $request->end_date : 'Sekarang');
-        $sheet->setCellValue('A2', $periodText . ' | Dicetak: ' . Carbon::now()->format('d-m-Y H:i:s'));
-        $sheet->mergeCells('A2:U2');
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // 1. Title Banner (Row 1)
+        $sheet->setCellValue('A1', 'PT SEKAWAN MEDIA MINING — LAPORAN PEMESANAN & MONITORING KENDARAAN TAMBANG');
+        $sheet->mergeCells('A1:V1');
+        $sheet->getRowDimension(1)->setRowHeight(32);
+        $sheet->getStyle('A1:V1')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 13,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'fill' => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF1E293B'], // Slate-800
+            ],
+        ]);
 
-        // Column Headers
+        // 2. Meta / Filter Info Banner (Row 2)
+        $periodStart = $request->filled('start_date') ? Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua Tanggal';
+        $periodEnd = $request->filled('end_date') ? Carbon::parse($request->end_date)->format('d/m/Y') : 'Sekarang';
+        $metaText = "Periode: {$periodStart} s/d {$periodEnd}   |   Dicetak pada: " . Carbon::now()->format('d/m/Y H:i:s') . " WIB   |   Total Data: " . count($bookings) . " Transaksi";
+        
+        $sheet->setCellValue('A2', $metaText);
+        $sheet->mergeCells('A2:V2');
+        $sheet->getRowDimension(2)->setRowHeight(20);
+        $sheet->getStyle('A2:V2')->applyFromArray([
+            'font' => [
+                'italic' => true,
+                'size' => 9.5,
+                'color' => ['argb' => 'FF475569'], // Slate-600
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'fill' => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FFF1F5F9'], // Slate-100
+            ],
+        ]);
+
+        // Row 3 Spacing
+        $sheet->getRowDimension(3)->setRowHeight(8);
+
+        // 3. Table Column Headers (Row 4)
         $headers = [
-            'No',
-            'Kode Booking',
-            'Tgl Mulai',
-            'Tgl Selesai',
-            'Nama Pemohon',
-            'Departemen',
-            'Lokasi Asal',
-            'Lokasi Tujuan',
-            'Kendaraan',
-            'No. Plat',
-            'Tipe',
-            'Kepemilikan',
-            'Nama Driver',
-            'Status Booking',
-            'Approver L1',
-            'Status L1',
-            'Catatan L1',
-            'Approver L2',
-            'Status L2',
-            'Catatan L2',
-            'Total BBM (Liter)',
-            'Biaya BBM (Rp)',
+            'A' => 'No',
+            'B' => 'Kode Booking',
+            'C' => 'Tgl Mulai',
+            'D' => 'Tgl Selesai',
+            'E' => 'Nama Pemohon',
+            'F' => 'Departemen',
+            'G' => 'Lokasi Asal',
+            'H' => 'Lokasi Tujuan',
+            'I' => 'Kendaraan',
+            'J' => 'No. Plat',
+            'K' => 'Tipe Armada',
+            'L' => 'Kepemilikan',
+            'M' => 'Nama Driver',
+            'N' => 'Status Booking',
+            'O' => 'Penyetujui L1',
+            'P' => 'Status L1',
+            'Q' => 'Catatan L1',
+            'R' => 'Penyetujui L2',
+            'S' => 'Status L2',
+            'T' => 'Catatan L2',
+            'U' => 'Total BBM (Liter)',
+            'V' => 'Biaya BBM (Rp)',
         ];
 
-        $headerRow = 4;
-        $colIndex = 1;
-        foreach ($headers as $header) {
-            $sheet->setCellValueByColumnAndRow($colIndex, $headerRow, $header);
-            $colIndex++;
+        foreach ($headers as $col => $headerTitle) {
+            $sheet->setCellValue("{$col}4", $headerTitle);
         }
 
-        // Style Table Header
-        $headerRange = 'A4:V4';
-        $sheet->getStyle($headerRange)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
-        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('1E293B');
-        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getRowDimension(4)->setRowHeight(26);
+        $sheet->getStyle('A4:V4')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 10,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+                'wrapText'   => true,
+            ],
+            'fill' => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF1E3A8A'], // Navy Blue (Blue-900)
+            ],
+        ]);
 
-        // Data Rows
+        // Status Label Maps (Localized)
+        $statusLabels = [
+            'pending_level_1' => 'Menunggu Persetujuan L1',
+            'pending_level_2' => 'Menunggu Persetujuan L2',
+            'approved'        => 'Disetujui',
+            'in_use'          => 'Sedang Digunakan',
+            'completed'       => 'Selesai',
+            'rejected'        => 'Ditolak',
+            'cancelled'       => 'Dibatalkan',
+        ];
+
+        $approvalLabels = [
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+            'pending'  => 'Menunggu',
+        ];
+
+        // 4. Data Rows (Row 5 onwards)
         $row = 5;
         $no = 1;
         foreach ($bookings as $b) {
             $l1 = $b->approvals->where('approval_level', 1)->first();
             $l2 = $b->approvals->where('approval_level', 2)->first();
-            $liters = $b->fuelLogs->sum('liters');
-            $cost = $b->fuelLogs->sum('total_cost');
+            $liters = (float) $b->fuelLogs->sum('liters');
+            $cost = (float) $b->fuelLogs->sum('total_cost');
 
             $sheet->setCellValue("A{$row}", $no++);
             $sheet->setCellValue("B{$row}", $b->booking_code);
-            $sheet->setCellValue("C{$row}", Carbon::parse($b->start_date)->format('Y-m-d H:i'));
-            $sheet->setCellValue("D{$row}", Carbon::parse($b->end_date)->format('Y-m-d H:i'));
+            $sheet->setCellValue("C{$row}", Carbon::parse($b->start_date)->format('d/m/Y H:i'));
+            $sheet->setCellValue("D{$row}", Carbon::parse($b->end_date)->format('d/m/Y H:i'));
             $sheet->setCellValue("E{$row}", $b->requester_name);
             $sheet->setCellValue("F{$row}", $b->requester_department);
-            $sheet->setCellValue("G{$row}", $b->originRegion?->name);
-            $sheet->setCellValue("H{$row}", $b->destinationRegion?->name);
-            $sheet->setCellValue("I{$row}", $b->vehicle?->name);
-            $sheet->setCellValue("J{$row}", $b->vehicle?->license_plate);
-            $sheet->setCellValue("K{$row}", $b->vehicle?->type === 'passenger' ? 'Angkutan Orang' : 'Angkutan Barang');
+            $sheet->setCellValue("G{$row}", $b->originRegion?->name ?? '-');
+            $sheet->setCellValue("H{$row}", $b->destinationRegion?->name ?? '-');
+            $sheet->setCellValue("I{$row}", $b->vehicle?->name ?? '-');
+            $sheet->setCellValue("J{$row}", $b->vehicle?->license_plate ?? '-');
+            $sheet->setCellValue("K{$row}", $b->vehicle?->type === 'passenger' ? 'Angkutan Orang' : ($b->vehicle?->type === 'cargo' ? 'Angkutan Barang' : '-'));
             $sheet->setCellValue("L{$row}", $b->vehicle?->ownership_type === 'owned' ? 'Milik Sendiri' : 'Sewa (' . ($b->vehicle?->rentalCompany?->name ?? 'Vendor') . ')');
-            $sheet->setCellValue("M{$row}", $b->driver?->name);
-            $sheet->setCellValue("N{$row}", strtoupper(str_replace('_', ' ', $b->status)));
+            $sheet->setCellValue("M{$row}", $b->driver?->name ?? '-');
+            $sheet->setCellValue("N{$row}", $statusLabels[$b->status] ?? ucfirst(str_replace('_', ' ', $b->status)));
             $sheet->setCellValue("O{$row}", $l1?->approver?->name ?? '-');
-            $sheet->setCellValue("P{$row}", strtoupper($l1?->status ?? '-'));
+            $sheet->setCellValue("P{$row}", $approvalLabels[$l1?->status ?? ''] ?? ($l1?->status ? ucfirst($l1->status) : '-'));
             $sheet->setCellValue("Q{$row}", $l1?->notes ?? '-');
             $sheet->setCellValue("R{$row}", $l2?->approver?->name ?? '-');
-            $sheet->setCellValue("S{$row}", strtoupper($l2?->status ?? '-'));
+            $sheet->setCellValue("S{$row}", $approvalLabels[$l2?->status ?? ''] ?? ($l2?->status ? ucfirst($l2->status) : '-'));
             $sheet->setCellValue("T{$row}", $l2?->notes ?? '-');
             $sheet->setCellValue("U{$row}", $liters);
             $sheet->setCellValue("V{$row}", $cost);
 
-            // Format numbers
+            $sheet->getRowDimension($row)->setRowHeight(20);
+
+            // Alignments per column group
+            $sheet->getStyle("A{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("E{$row}:I{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("J{$row}:L{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("M{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("N{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("O{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("P{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("Q{$row}:R{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("S{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("T{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("U{$row}:V{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT)->setVertical(Alignment::VERTICAL_CENTER);
+
+            // Number formatting
             $sheet->getStyle("U{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
             $sheet->getStyle("V{$row}")->getNumberFormat()->setFormatCode('#,##0');
+
+            // Zebra striping (even row light tint)
+            if ($row % 2 === 0) {
+                $sheet->getStyle("A{$row}:V{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF8FAFC');
+            }
 
             $row++;
         }
 
-        // Summary Row
-        $sheet->setCellValue("A{$row}", 'TOTAL');
+        // 5. Summary / Total Row
+        $sheet->setCellValue("A{$row}", 'TOTAL KESELURUHAN');
         $sheet->mergeCells("A{$row}:T{$row}");
-        $sheet->getStyle("A{$row}:T{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("A{$row}:T{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getRowDimension($row)->setRowHeight(24);
         
+        $sheet->getStyle("A{$row}:T{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_RIGHT,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'fill' => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FFE2E8F0'], // Slate-200
+            ],
+        ]);
+
         $prevRow = $row - 1;
         if ($prevRow >= 5) {
             $sheet->setCellValue("U{$row}", "=SUM(U5:U{$prevRow})");
@@ -211,16 +307,78 @@ class ReportController extends Controller
             $sheet->setCellValue("U{$row}", 0);
             $sheet->setCellValue("V{$row}", 0);
         }
-        $sheet->getStyle("U{$row}:V{$row}")->getFont()->setBold(true);
+
+        $sheet->getStyle("U{$row}:V{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_RIGHT,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'fill' => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FFE2E8F0'], // Slate-200
+            ],
+        ]);
         $sheet->getStyle("U{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
         $sheet->getStyle("V{$row}")->getNumberFormat()->setFormatCode('#,##0');
 
-        $sheet->getStyle("A4:V{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        // 6. Borders for Table (Header through Total Row)
+        $sheet->getStyle("A4:V{$row}")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FFCBD5E1'], // Light slate border
+                ],
+            ],
+        ]);
 
-        // Auto-fit column widths
-        foreach (range('A', 'V') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+        // Heavy bottom double border for total row
+        $sheet->getStyle("A{$row}:V{$row}")->applyFromArray([
+            'borders' => [
+                'bottom' => [
+                    'borderStyle' => Border::BORDER_DOUBLE,
+                    'color' => ['argb' => 'FF64748B'],
+                ],
+                'top' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF64748B'],
+                ],
+            ],
+        ]);
+
+        // 7. Column Widths (Optimal padding for clear readability)
+        $columnWidths = [
+            'A' => 6,   // No
+            'B' => 18,  // Kode Booking
+            'C' => 18,  // Tgl Mulai
+            'D' => 18,  // Tgl Selesai
+            'E' => 24,  // Nama Pemohon
+            'F' => 22,  // Departemen
+            'G' => 22,  // Lokasi Asal
+            'H' => 22,  // Lokasi Tujuan
+            'I' => 24,  // Kendaraan
+            'J' => 16,  // No. Plat
+            'K' => 18,  // Tipe Armada
+            'L' => 20,  // Kepemilikan
+            'M' => 20,  // Nama Driver
+            'N' => 25,  // Status Booking
+            'O' => 22,  // Approver L1
+            'P' => 16,  // Status L1
+            'Q' => 28,  // Catatan L1
+            'R' => 22,  // Approver L2
+            'S' => 16,  // Status L2
+            'T' => 28,  // Catatan L2
+            'U' => 20,  // Total BBM (Liter)
+            'V' => 22,  // Biaya BBM (Rp)
+        ];
+
+        foreach ($columnWidths as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
         }
+
+        // 8. Freeze Pane & AutoFilter
+        $sheet->freezePane('A5');
+        $sheet->setAutoFilter("A4:V{$prevRow}");
 
         $filename = 'Laporan_Pemesanan_Kendaraan_' . Carbon::now()->format('Ymd_His') . '.xlsx';
 

@@ -37,18 +37,20 @@ Aplikasi menggunakan arsitektur Decoupled Single Page Application (SPA):
 
 ## 2. Matriks Otorisasi Berbasis Peran (RBAC)
 
-| Modul / Halaman / Endpoint | Peran Admin | Peran Approver (L1 & L2) | Catatan Keamanan |
+| Modul / Halaman / Endpoint | Peran Admin | Peran Approver (L1 & L2) | Catatan Keamanan & Isolasi Data |
 | :--- | :--- | :--- | :--- |
-| **Dashboard Utama (`/dashboard`)** | ✅ Akses Penuh | ✅ Akses Monitoring | Approver hanya melihat metrik tanpa tombol servis admin |
-| **Dashboard Cabang (`/branch-dashboard`)** | ✅ Akses Penuh | ✅ Akses Penuh | Monitoring distribusi unit regional |
-| **Pemesanan (`/bookings`)** | ✅ Buat / Start / Selesai | 👁️ Hanya Baca Daftar | Pembuatan booking hanya oleh Admin Pool |
-| **Portal Persetujuan (`/approvals`)** | 👁️ Monitoring Status | ✅ Setujui / Tolak | Approver hanya dapat menindak levelnya sendiri |
-| **Armada Kendaraan (`/vehicles`)** | ✅ CRUD Lengkap | ❌ Dilarang (Redirect/403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
-| **Master Driver (`/drivers`)** | ✅ CRUD Lengkap | ❌ Dilarang (Redirect/403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
-| **Konsumsi BBM (`/fuel-logs`)** | ✅ Catat & Riwayat | ❌ Dilarang (Redirect/403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
-| **Jadwal Servis (`/service-logs`)** | ✅ Catat & Pantau | ❌ Dilarang (Redirect/403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
-| **Laporan & Excel (`/reports`)** | ✅ Unduh .xlsx | ✅ Unduh .xlsx | Akses laporan rekapitulasi periodik |
-| **Audit Trail (`/activity-logs`)** | ✅ Lihat Log Lengkap | ❌ Dilarang (Redirect/403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Portal Persetujuan (`/approvals`)** | 👁️ Monitoring & Batal | ✅ Setujui / Tolak | **Khusus Approver:** Antrean hanya memuat item yang ditugaskan ke user terkait, dan tab riwayat hanya memuat tindakan pribadi user |
+| **Dashboard Utama (`/dashboard`)** | ✅ Akses Penuh | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Dashboard Cabang (`/branch-dashboard`)** | ✅ Akses Penuh | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Personil Bertugas (`/duties`)** | ✅ Akses Penuh | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Pemesanan Kendaraan (`/bookings`)** | ✅ CRUD & Dispatch | ❌ Dilarang (Redirect `/approvals` / 403) | Pembuatan & manajemen booking hanya oleh Admin Pool |
+| **Armada Kendaraan (`/vehicles`)** | ✅ CRUD Lengkap | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Master Driver (`/drivers`)** | ✅ CRUD Lengkap | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Konsumsi BBM (`/fuel-logs`)** | ✅ Catat & Riwayat | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Jadwal Servis (`/service-logs`)** | ✅ Catat & Pantau | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Laporan & Excel (`/reports`)** | ✅ Unduh .xlsx | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Audit Trail (`/activity-logs`)** | ✅ Lihat Log Lengkap | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
+| **Manajemen User (`/users`)** | ✅ CRUD Akun | ❌ Dilarang (Redirect `/approvals` / 403) | Dilindungi `ProtectedRoute adminOnly` & Middleware `admin` |
 
 ---
 

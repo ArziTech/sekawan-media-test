@@ -49,49 +49,60 @@ export function AppSidebar({ ...props }) {
         })
         .catch(() => {});
 
-      api.get('/duties')
-        .then((res) => {
-          if (res.data?.success && res.data?.data?.stats) {
-            setActiveDutyCount(res.data.data.stats.active_duties || 0);
-          }
-        })
-        .catch(() => {});
+      if (isAdmin) {
+        api.get('/duties')
+          .then((res) => {
+            if (res.data?.success && res.data?.data?.stats) {
+              setActiveDutyCount(res.data.data.stats.active_duties || 0);
+            }
+          })
+          .catch(() => {});
+      }
     };
 
     fetchCounts();
     const interval = setInterval(fetchCounts, 15000);
     return () => clearInterval(interval);
-  }, [user?.id]);
+  }, [user?.id, isAdmin]);
 
-  const navOperations = [
-    {
-      title: "Dashboard Utama",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      title: "Dashboard Cabang",
-      url: "/branch-dashboard",
-      icon: Building2,
-    },
-    {
-      title: "Personil Bertugas",
-      url: "/duties",
-      icon: Radio,
-      badge: activeDutyCount > 0 ? activeDutyCount : null,
-    },
-    {
-      title: "Pemesanan Kendaraan",
-      url: "/bookings",
-      icon: CalendarCheck,
-    },
-    {
-      title: "Portal Persetujuan",
-      url: "/approvals",
-      icon: CheckSquare,
-      badge: pendingCount,
-    },
-  ];
+  const navOperations = isAdmin
+    ? [
+        {
+          title: "Dashboard Utama",
+          url: "/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          title: "Dashboard Cabang",
+          url: "/branch-dashboard",
+          icon: Building2,
+        },
+        {
+          title: "Personil Bertugas",
+          url: "/duties",
+          icon: Radio,
+          badge: activeDutyCount > 0 ? activeDutyCount : null,
+        },
+        {
+          title: "Pemesanan Kendaraan",
+          url: "/bookings",
+          icon: CalendarCheck,
+        },
+        {
+          title: "Portal Persetujuan",
+          url: "/approvals",
+          icon: CheckSquare,
+          badge: pendingCount,
+        },
+      ]
+    : [
+        {
+          title: "Portal Persetujuan",
+          url: "/approvals",
+          icon: CheckSquare,
+          badge: pendingCount,
+        },
+      ];
 
   const navFleet = isAdmin
     ? [
@@ -123,22 +134,20 @@ export function AppSidebar({ ...props }) {
       ]
     : [];
 
-  const navReports = [
-    {
-      title: "Laporan & Export Excel",
-      url: "/reports",
-      icon: FileSpreadsheet,
-    },
-    ...(isAdmin
-      ? [
-          {
-            title: "Audit Trail (Logs)",
-            url: "/activity-logs",
-            icon: Activity,
-          },
-        ]
-      : []),
-  ];
+  const navReports = isAdmin
+    ? [
+        {
+          title: "Laporan & Export Excel",
+          url: "/reports",
+          icon: FileSpreadsheet,
+        },
+        {
+          title: "Audit Trail (Logs)",
+          url: "/activity-logs",
+          icon: Activity,
+        },
+      ]
+    : [];
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/80" {...props}>
@@ -163,15 +172,19 @@ export function AppSidebar({ ...props }) {
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-3 space-y-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
-        <NavMain title="Operasional & Alur" items={navOperations} />
+        <NavMain title={isAdmin ? "Operasional & Alur" : "Menu Otorisasi"} items={navOperations} />
         {navFleet.length > 0 && (
           <>
             <SidebarSeparator className="my-1 opacity-50" />
             <NavMain title="Manajemen Armada" items={navFleet} />
           </>
         )}
-        <SidebarSeparator className="my-1 opacity-50" />
-        <NavMain title="Analitik & Rekapitulasi" items={navReports} />
+        {navReports.length > 0 && (
+          <>
+            <SidebarSeparator className="my-1 opacity-50" />
+            <NavMain title="Analitik & Rekapitulasi" items={navReports} />
+          </>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border/60 p-2 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">

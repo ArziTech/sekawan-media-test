@@ -21,6 +21,7 @@ Indeks per topik untuk `docs/*.md`. Satu file = satu topik (lihat aturan dokumen
 
 ## Rencana Implementasi
 
+- **[plans/pembatasan-otoritas-approver.md](../plans/pembatasan-otoritas-approver.md)** = Dokumen rencana pembatasan hak akses dan otoritas peran Approver (hanya akses /approvals dan riwayat milik sendiri).
 - **[plans/monitoring-personil-bertugas-dan-armada.md](../plans/monitoring-personil-bertugas-dan-armada.md)** = Dokumen rencana implementasi halaman monitoring personil bertugas, armada aktif, supir standby, dan operasi lapangan.
 - **[plans/perbaikan-format-dan-tampilan-export-excel.md](../plans/perbaikan-format-dan-tampilan-export-excel.md)** = Dokumen rencana perbaikan tata letak, styling visual, penyesuaian lebar kolom, dan formula ekspor Microsoft Excel (.xlsx).
 - **[plans/refactor-form-validation-tanstack-query.md](../plans/refactor-form-validation-tanstack-query.md)** = Dokumen rencana audit & refactor form UI (shadcn/ui), validasi Zod + React Hook Form, dan TanStack Query.

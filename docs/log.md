@@ -506,8 +506,86 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
 - Build frontend dan linter lulus 100% tanpa galat.
 
+## [2026-09-03] update | Selesai Eksekusi Pembatasan Otoritas Approver & Isolasi Item Pengajuan
+
+- **Backend:**
+  - Melindungi rute `/dashboard/*`, `/duties`, `/bookings` (index, show, mutations), `/reports/*`, `/vehicles`, `/drivers`, `/fuel-logs`, `/service-logs`, `/activity-logs`, `/users` dengan middleware `admin` pada [`backend/routes/api.php`](backend/routes/api.php).
+  - Memperbarui query `history` pada [`backend/app/Http/Controllers/Api/ApprovalController.php`](backend/app/Http/Controllers/Api/ApprovalController.php) dengan eager loading relasi lengkap (`booking.originRegion`, `booking.destinationRegion`, `booking.vehicle`, `booking.driver`, `booking.createdBy`, `booking.approvals.approver`, `approver`) dan isolasi data per `approver_user_id`.
+  - Memperbarui script pengujian [`backend/tests/e2e_verification.php`](backend/tests/e2e_verification.php) dengan pengujian RBAC 403 Forbidden untuk approver pada seluruh rute terproteksi dan verifikasi isolasi riwayat personal (100% Passed).
+- **Frontend:**
+  - Memperbarui `ProtectedRoute` dan `FallbackRoute` pada [`frontend/src/App.jsx`](frontend/src/App.jsx) sehingga peran Approver hanya diizinkan membuka rute `/approvals` dan seluruh rute lain di-redirect otomatis ke `/approvals`.
+  - Menyesuaikan [`frontend/src/components/app-sidebar.jsx`](frontend/src/components/app-sidebar.jsx) sehingga bagi akun Approver hanya menampilkan satu menu tunggal: **"Portal Persetujuan"** dengan badge counter permohonan yang ditujukan kepadanya.
+  - Memperbarui redirect login pada [`frontend/src/pages/Login.jsx`](frontend/src/pages/Login.jsx), CTA button pada [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx), dan breadcrumb root pada [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx) ke `/approvals` bagi pengguna Approver.
+  - Memperbarui tab "Riwayat Persetujuan" pada [`frontend/src/pages/Approvals.jsx`](frontend/src/pages/Approvals.jsx) agar menyajikan kolom waktu otorisasi, status keputusan personal, catatan approver, dan status akhir pemesanan.
+- **Dokumentasi Wiki:**
+  - Memperbarui matriks RBAC pada [`docs/arsitektur-aplikasi.md`](docs/arsitektur-aplikasi.md) dan panduan operasional pada [`docs/panduan-penggunaan.md`](docs/panduan-penggunaan.md).
+
+
 
 ## [2026-09-03] fix | Perbaikan Tampilan Tanggal Transisi Status Masuk Bengkel & Selesai pada Modal Detail Armada
 
 - Memperbarui komponen Timeline Rekam Jejak Servis pada [`frontend/src/pages/Vehicles.jsx`](frontend/src/pages/Vehicles.jsx) agar menampilkan tanggal & waktu riil untuk tahap **"2. Masuk Bengkel"** dan **"3. Selesai Pengerjaan"** (dengan fallback tanggal servis untuk entri data yang sudah `completed` atau `in_progress`).
 - Menjalankan migrasi backfill pada database MySQL untuk memastikan seluruh catatan servis eksisting memiliki nilai stempel waktu `in_progress_at` dan `completed_at`.
+
+## [2026-09-03] feat | Integrasi Komponen GlassmorphismPortfolioBlock pada Bagian Tentang Saya
+
+- Menyalin foto profil resmi pengembang dari `/home/wawan/Downloads/Copy of DSC_1961 (1)_E18.jpg` ke [`frontend/src/assets/gunawan-profile.jpg`](frontend/src/assets/gunawan-profile.jpg) dan [`frontend/public/gunawan-profile.jpg`](frontend/public/gunawan-profile.jpg).
+- Membuat komponen [`frontend/src/components/ui/glassmorphism-portfolio-block-shadcnui.jsx`](frontend/src/components/ui/glassmorphism-portfolio-block-shadcnui.jsx) (`GlassmorphismPortfolioBlock`) dengan efek *backdrop blur 2xl*, aksen gradasi amber/nickel mining, sorotan pendidikan, portofolio proyek SaaS, dan kartu profil foto interaktif dengan tombol media sosial.
+- Mengintegrasikan `<GlassmorphismPortfolioBlock />` ke dalam section `#about` pada [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx).
+- Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
+- Build frontend produksi Vite dan oxlint lulus 100% tanpa galat.
+
+## [2026-09-03] fix | Sinkronisasi Versi Aktual Tech Stack & Perbaikan Alignment Kartu Frontend SPA
+
+- **Penyebab Ruang Kosong:** Komponen `<Card>` memiliki kelas flex `justify-between` sehingga saat kartu Backend memiliki 4 item, kartu Frontend (sebelumnya 2 item) terdorong ke paling bawah menyisakan ruang kosong besar di bagian atas.
+- **Perbaikan Alignment:** Mengubah kelas layout `<Card>` menjadi `flex flex-col shadow-sm` dan `<CardContent>` menjadi `flex-1 flex flex-col justify-start` agar seluruh item tersusun rapi dari atas tepat di bawah header.
+- **Sinkronisasi Versi Aktual:**
+  - **Backend Core:** Laravel Framework `v13.30.1`, PHP Runtime `v8.4.25` (Docker), MySQL `v8.0`, Laravel Sanctum `v4.0` & PhpSpreadsheet `v5.9`.
+  - **Frontend SPA:** React.js `v19.2.8` (Vite `v8.2.2`), Tailwind CSS `v4.3.3` (Motion `v13.2.0`), TanStack Query `v5.102.8` & TanStack Table `v9.2.4`, Chart.js `v4.5.1` & React Hook Form dengan Zod `v4.5.4`.
+- Build produksi Vite (`npm run build`) dan `oxlint` sukses tanpa error.
+
+## [2026-09-03] feat | Penggantian ASCII State Machine dengan Gambar Visual Activity Diagram
+
+- Menyalin diagram swimlane resmi [`activity-diagram.png`](activity-diagram.png) ke [`frontend/src/assets/activity-diagram.png`](frontend/src/assets/activity-diagram.png) dan [`frontend/public/activity-diagram.png`](frontend/public/activity-diagram.png).
+- Mengganti kotak teks ASCII diagram pada section `#activity-diagram` di [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx) dengan kartu representasi visual beresolusi tinggi, berbingkai bersih, lengkap dengan tombol akses resolusi penuh (`/activity-diagram.png`).
+- Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
+- Build frontend produksi Vite lulus 100% tanpa kendala.
+
+## [2026-09-03] style | Pembersihan Seluruh Efek Box Shadow pada Landing Page
+
+- Menghapus seluruh kelas `shadow-*` (seperti `shadow-2xl`, `shadow-xl`, `shadow-lg`, `shadow-md`, `shadow-sm`, `shadow-inner`, dan `shadow-xs`) dari seluruh elemen Landing Page:
+  - [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx) (Active Step Card, Activity Diagram Box, PDM Table Card, dan Tech Stack Card).
+  - [`frontend/src/components/ui/hero-section-demo-1.jsx`](frontend/src/components/ui/hero-section-demo-1.jsx) (CTA Button & Mockup Window).
+  - [`frontend/src/components/ui/glassmorphism-portfolio-block-shadcnui.jsx`](frontend/src/components/ui/glassmorphism-portfolio-block-shadcnui.jsx) (Glassmorphism Container, Highlights Card, Profile Box, Avatar, dan Social Buttons).
+- Menghasilkan tampilan yang lebih *clean*, *flat modern*, dan konsisten dengan border garis halus `border-border`.
+- Build produksi Vite (`npm run build`) sukses tanpa error.
+
+## [2026-09-03] feat | Penyatuan Section Activity Diagram & Stepper Interaktif dalam Tata Letak Split 2 Kolom
+
+- Menggabungkan bagian visual Activity Diagram swimlane dengan Stepper Simulator tahapan persetujuan ke dalam satu section `#activity-diagram` berformat grid split layout 2 kolom (`grid-cols-1 lg:grid-cols-12`):
+  - **Sisi Kiri (`lg:col-span-5`)**: Menampilkan diagram visual swimlane *Admin Pool &middot; Approver 1 &middot; Approver 2* secara utuh dengan tombol akses resolusi penuh.
+  - **Sisi Kanan (`lg:col-span-7`)**: Menampilkan tab navigasi tahapan interaktif (Step 1 s/d Step 5) dan kartu inspektor rincian aktor, status sistem, serta checklist logika operasional.
+- Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
+- Build frontend produksi Vite (`npm run build`) sukses 100%.
+
+## [2026-09-03] feat | Penggantian Section Skema PDM dengan Gambar Visual ERD Lengkap
+
+- Menyinkronkan diagram ERD resmi [`frontend/public/erd.png`](frontend/public/erd.png) ke [`frontend/src/assets/erd.png`](frontend/src/assets/erd.png) dan [`erd.png`](erd.png).
+- Mengganti penjelajah tabel teks PDM pada section `#pdm-section` di [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx) dengan visualisasi bagan **Entity Relationship Diagram (ERD)** beresolusi tinggi (10 tabel, PK/FK, relasi, dan legenda).
+- Menambahkan tombol akses langsung "Buka Resolusi Penuh" (`/erd.png`) untuk peninjauan diagram detail.
+- Menghapus variabel dan *state* objek `pdmTables` yang sudah tidak terpakai untuk menjaga kebersihan basis kode (*surgical change*).
+- Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
+- Build frontend produksi Vite (`npm run build`) dan linting (`npm run lint`) sukses tanpa kendala.
+
+## [2026-09-03] docs | Integrasi Gambar Activity Diagram dan ERD ke dalam README.md
+
+- Menambahkan visualisasi berkas [`activity-diagram.png`](activity-diagram.png) ke Bagian 5 (*Diagram Alur Proses — Activity Diagram*) di [`README.md`](README.md) lengkap dengan penjelasan alur 5 tahapan dari Admin Pool hingga penyelesaian perjalanan.
+- Menambahkan visualisasi berkas [`erd.png`](erd.png) ke Bagian 6 (*Skema Basis Data — Entity Relationship Diagram*) di [`README.md`](README.md) lengkap dengan ringkasan rincian seluruh 10 tabel basis data MySQL.
+- Menyesuaikan penomoran seksi dan bagan struktur direktori proyek pada [`README.md`](README.md).
+
+
+
+
+
+
+

@@ -71,7 +71,7 @@ export const Reports = () => {
 
       const res = await api.get('/reports/bookings', { params });
       return {
-        bookings: res.data?.data?.data || [],
+        bookings: res.data?.data?.bookings || res.data?.data?.data || [],
         summary: res.data?.data?.summary || { total_bookings: 0, total_fuel_liters: 0, total_fuel_cost: 0 },
       };
     },
@@ -332,10 +332,10 @@ export const Reports = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="pending_approval_1">Menunggu L1</SelectItem>
-                  <SelectItem value="pending_approval_2">Menunggu L2</SelectItem>
+                  <SelectItem value="pending_level_1">Menunggu Persetujuan L1</SelectItem>
+                  <SelectItem value="pending_level_2">Menunggu Persetujuan L2</SelectItem>
                   <SelectItem value="approved">Disetujui</SelectItem>
-                  <SelectItem value="in_progress">Dalam Perjalanan</SelectItem>
+                  <SelectItem value="in_use">Sedang Digunakan</SelectItem>
                   <SelectItem value="completed">Selesai</SelectItem>
                   <SelectItem value="rejected">Ditolak</SelectItem>
                   <SelectItem value="cancelled">Dibatalkan</SelectItem>
@@ -431,16 +431,16 @@ export const Reports = () => {
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-xs">
                       <div className="font-bold text-foreground">{b.requester_name}</div>
-                      <div className="text-[10px] text-muted-foreground">{b.department}</div>
+                      <div className="text-[10px] text-muted-foreground">{b.requester_department || b.department || '-'}</div>
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-xs">
-                      <div className="font-semibold text-foreground">{b.vehicle?.name}</div>
-                      <div className="text-[11px] text-muted-foreground font-mono">{b.vehicle?.license_plate}</div>
+                      <div className="font-semibold text-foreground">{b.vehicle?.name || '-'}</div>
+                      <div className="text-[11px] text-muted-foreground font-mono">{b.vehicle?.license_plate || '-'}</div>
                       <div className="text-[10px] text-muted-foreground mt-0.5">{b.driver?.name || 'Tanpa Supir'}</div>
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-xs">
                       <div className="font-medium text-foreground">
-                        {b.origin_region?.name} &rarr; {b.destination_region?.name}
+                        {b.origin_region?.name || b.originRegion?.name || '-'} &rarr; {b.destination_region?.name || b.destinationRegion?.name || '-'}
                       </div>
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-xs font-mono text-muted-foreground">
