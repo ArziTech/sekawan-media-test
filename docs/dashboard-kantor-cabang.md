@@ -26,16 +26,14 @@ Dashboard Monitoring Kantor Cabang dan Wilayah Tambang (`/branch-dashboard`) men
 
 ---
 
-## 2. Fitur & Mode Tampilan
+## 2. Fitur & Panel Monitoring Cabang
 
-### A. Mode 1: Ringkasan Komparatif Semua Wilayah (*Overview Mode*)
-- **8 Kartu Wilayah:** Menampilkan ringkasan armada pool (tersedia vs total), supir siap jalan, ritase aktif, dan biaya BBM bulanan.
-- **Grafik Komparasi Utilisasi:** Bar chart perbandingan jumlah kendaraan dan frekuensi keberangkatan logistik per site.
-- **Grafik Beban Biaya BBM:** Distribusi pengeluaran bahan bakar kendaraan pada masing-masing pool wilayah.
-- **Tabel Rekapitulasi 8 Wilayah:** Tabel lengkap dengan metrik kesiapan dan tombol pintas navigasi detail (*drill-down*).
+### A. Seleksi Langsung Kantor Cabang / Wilayah Tambang
+- **Regional Selector Bar:** Tombol pemilihan instan untuk berpindah antar kantor cabang (**Kantor Cabang Kendari**), kantor pusat (**Jakarta**), maupun site tambang nikel (**Pomalaa, Morowali, Konawe, Kolaka, Halmahera, Sorowako**).
+- **Default Load:** Otomatis menampilkan data operasional kantor cabang (*Kendari*) saat pertama kali dibuka.
 
-### B. Mode 2: Analisis Mendalam Wilayah Terpilih (*Drill-Down Mode*)
-- **Banner Identitas Wilayah:** Nama, tipe wilayah, kode registrasi, dan alamat operasional.
+### B. Analisis & Metrik Wilayah Terpilih
+- **Banner Identitas Wilayah:** Nama, tipe wilayah (Pusat / Cabang / Site Tambang), kode registrasi, dan alamat operasional.
 - **4 Kartu Metrik Utama:**
   1. *Kesiapan Armada Pool:* Unit tersedia vs total, komposisi angkutan orang vs barang.
   2. *Personil Supir:* Supir siap bertugas vs sedang dalam penugasan dinas (*on duty*).

@@ -227,3 +227,10 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Mendaftarkan rute `/branch-dashboard` di [`frontend/src/App.jsx`](frontend/src/App.jsx), menambahkan navigasi **"Dashboard Cabang"** pada [`frontend/src/components/app-sidebar.jsx`](frontend/src/components/app-sidebar.jsx), serta judul breadcrumb pada [`frontend/src/components/site-header.jsx`](frontend/src/components/site-header.jsx).
 - Membuat dokumentasi lengkap [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md) dan memperbarui indeks [`docs/README.md`](docs/README.md).
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] refactor | Penyederhanaan Dashboard Cabang (Menghilangkan Mode Komparasi)
+
+- Menghapus mode perbandingan global (*Overview Comparison mode*) pada [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx).
+- Antarmuka kini difokuskan langsung pada pemilihan dan analisis mendalam kantor cabang (misal: *Kantor Cabang Kendari*) atau site tambang tertentu melalui bar pemilihan wilayah cepat.
+- Memperbarui dokumentasi di [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md).
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
