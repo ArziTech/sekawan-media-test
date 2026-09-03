@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -10,17 +10,24 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useLocation } from "react-router-dom";
-import { MapPin } from "lucide-react";
+import api from "@/services/api";
 import { ModeToggle } from "@/components/mode-toggle";
 
 export function SiteHeader() {
   const location = useLocation();
+  const [regions, setRegions] = useState([]);
+
+  useEffect(() => {
+    api.get('/regions')
+      .then((res) => {
+        if (res.data?.success && res.data.data?.regions) {
+          setRegions(res.data.data.regions);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const getPageTitle = (pathname) => {
-    if (pathname.startsWith('/branch-dashboard/')) {
-      return 'Detail Monitoring Wilayah Operasional';
-    }
-
     switch (pathname) {
       case '/':
       case '/dashboard':
@@ -50,7 +57,10 @@ export function SiteHeader() {
     }
   };
 
-  const title = getPageTitle(location.pathname);
+  const isBranchDetail = location.pathname.startsWith('/branch-dashboard/');
+  const branchId = isBranchDetail ? location.pathname.split('/')[2] : null;
+  const currentRegion = branchId ? regions.find((r) => String(r.id) === String(branchId)) : null;
+  const branchName = currentRegion?.name || 'Detail Wilayah';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border/80 bg-background/95 backdrop-blur-md px-4 lg:px-6 transition-all">
@@ -65,25 +75,33 @@ export function SiteHeader() {
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="text-xs font-semibold text-foreground">
-                {title}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
+
+            {isBranchDetail ? (
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/branch-dashboard" className="text-xs text-muted-foreground hover:text-foreground">
+                    Monitoring Kantor Cabang & Site
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="text-xs font-semibold text-foreground">
+                    {branchName}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </>
+            ) : (
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-xs font-semibold text-foreground">
+                  {getPageTitle(location.pathname)}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            )}
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
       <div className="flex items-center gap-2.5">
-        {/* Operational Region Info Badge */}
-        <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground bg-muted/40 px-3 py-1.5 rounded-full border border-border/60">
-          <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <span className="hidden md:inline">8 Wilayah: 1 HQ Jakarta &middot; 1 Kendari &middot; 6 Tambang</span>
-          <span className="md:hidden">8 Wilayah Operasional</span>
-        </div>
-
-        <Separator orientation="vertical" className="h-4" />
-
         {/* Theme Dark / Light Mode Toggle */}
         <ModeToggle />
       </div>
