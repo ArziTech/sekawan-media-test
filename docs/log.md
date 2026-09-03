@@ -591,6 +591,12 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - Mengonfigurasi SPA fallback handler pada [`backend/routes/web.php`](backend/routes/web.php) dan trust proxies pada [`backend/bootstrap/app.php`](backend/bootstrap/app.php).
   - Menambahkan dokumen rencana [`plans/deploy-caddy-rasava-network.md`](../plans/deploy-caddy-rasava-network.md) dan dokumentasi panduan [`docs/panduan-deployment.md`](./panduan-deployment.md).
 
+## [2026-09-03] update | Pembaruan Title Aplikasi Frontend Menjadi "Nickel fleet | Gunawan"
+
+- Memperbarui tag `<title>` pada [`frontend/index.html`](frontend/index.html) dan [`backend/public/index.html`](backend/public/index.html) menjadi `"Nickel fleet | Gunawan"`.
+- Mengompilasi ulang aset frontend (`npm run build`) dan menyinkronkan hasil build ke `backend/public/`.
+
+
 
 
 
