@@ -234,3 +234,10 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Antarmuka kini difokuskan langsung pada pemilihan dan analisis mendalam kantor cabang (misal: *Kantor Cabang Kendari*) atau site tambang tertentu melalui bar pemilihan wilayah cepat.
 - Memperbarui dokumentasi di [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md).
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] refactor | Pembersihan Selector Wilayah pada Dashboard Cabang
+
+- Menghapus filter bar pemilih wilayah individual pada [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx) sehingga antarmuka berfokus sepenuhnya pada visualisasi terpadu 8 wilayah operasional.
+- Menyajikan langsung 8 kartu ringkasan status pool, grafik komparasi armada & ritase, grafik distribusi beban BBM bulanan, dan tabel rekapitulasi data seluruh wilayah tanpa distraksi tombol switcher.
+- Memperbarui dokumentasi di [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md).
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
