@@ -22,7 +22,11 @@ import {
   Info,
   X,
 } from 'lucide-react';
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 export function LoginForm({ className, ...props }) {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -175,26 +179,46 @@ export function LoginForm({ className, ...props }) {
                   {submitting ? 'Memverifikasi...' : 'Masuk ke Sistem'}
                 </Button>
               </div>
-              {/* Info '!' Demo Credentials Trigger */}
-              <div className="relative group">
-                <button
-                  type="button"
-                  onClick={() => setShowDemoModal(!showDemoModal)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm"
-                  title="Klik untuk melihat kredensial akun demo"
-                >
-                  <AlertCircle className="w-3.5 h-3.5 animate-pulse" />
-                  <span>Demo Login</span>
-                </button>
-
-                {/* Hover tooltip hint */}
-                <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-20 w-56 p-2 rounded-lg bg-zinc-900 border border-zinc-700 text-[11px] text-zinc-300 shadow-xl pointer-events-none">
-                  <p className="font-semibold text-amber-400">💡 Kredensial Uji Coba</p>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">
-                    Klik tombol ini untuk melihat akun demo Admin & Approver dengan fitur auto-fill instan.
+              {/* Info '!' Demo Credentials Trigger with Tooltip Preview */}
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDemoModal(true)}
+                      className="flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20 transition-all cursor-pointer shadow-xs"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 animate-pulse" />
+                      <span>Demo Login</span>
+                    </Button>
+                  }
+                />
+                <TooltipContent side="bottom" align="end" className="p-3 w-72 space-y-2 bg-popover text-popover-foreground border border-border shadow-2xl rounded-xl z-50">
+                  <div className="font-bold text-xs text-amber-500 flex items-center justify-between border-b border-border/60 pb-1.5">
+                    <span>💡 Kredensial Uji Coba</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">Pass: password123</span>
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between gap-2 p-1 rounded bg-muted/40">
+                      <span className="font-semibold text-foreground">Admin:</span>
+                      <code className="text-amber-500 font-mono text-[10px]">admin@tambang.com</code>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 p-1 rounded bg-muted/40">
+                      <span className="font-semibold text-foreground">Approver L1:</span>
+                      <code className="text-amber-500 font-mono text-[10px]">approver1@tambang.com</code>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 p-1 rounded bg-muted/40">
+                      <span className="font-semibold text-foreground">Approver L2:</span>
+                      <code className="text-amber-500 font-mono text-[10px]">approver2@tambang.com</code>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-1 text-center">
+                    Klik tombol untuk memilih & login otomatis
                   </p>
-                </div>
-              </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
 
           </form>
@@ -264,19 +288,8 @@ export function LoginForm({ className, ...props }) {
               </Button>
             </div>
 
-            {/* Disclaimer Box */}
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-500 leading-relaxed space-y-1">
-              <span className="font-bold flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                Disclaimer Evaluasi Rekrutmen:
-              </span>
-              <p className="text-[11px] text-amber-500/90">
-                Informasi kredensial ini disediakan secara terbuka untuk mempermudah reviewer & tim rekrutmen <strong>PT Sekawan Media Informatika</strong> dalam mengevaluasi fitur otorisasi multi-role (Admin Pool & Multi-Level Approver).
-              </p>
-            </div>
-
             {/* Account List Cards */}
-            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+            <div className="space-y-2.5 pr-1">
               {demoAccounts.map((acc) => (
                 <div
                   key={acc.email}
@@ -296,10 +309,20 @@ export function LoginForm({ className, ...props }) {
                     </div>
                   </div>
 
-
                 </div>
               ))}
             </div>
+            {/* Disclaimer Box */}
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-500 leading-relaxed space-y-1">
+              <span className="font-bold flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                Disclaimer:
+              </span>
+              <p className="text-[11px] text-amber-500/90">
+                Informasi kredensial kredensial ini hanya untuk tujuan demo aplikasi.
+              </p>
+            </div>
+
 
             {/* Footer */}
             <div className="border-t border-border/60 pt-3 flex items-center justify-between text-xs text-muted-foreground">
