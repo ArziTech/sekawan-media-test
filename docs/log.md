@@ -458,3 +458,21 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - Menambahkan KPI Summary Card ke-4 untuk **Servis Dibatalkan** dan badge penanda status berwarna merah mawar (`cancelled`).
 - **Dokumentasi:**
   - Memperbarui panduan operasional pada [`docs/panduan-penggunaan.md`](docs/panduan-penggunaan.md).
+
+## [2026-09-03] feat | Implementasi Profil & Detail 360° Armada Beserta Pelacakan Siklus BBM, Servis & Penugasan Dinas
+
+- **Backend:**
+  - Menambahkan field timestamp transisi status pada tabel `service_logs` (`scheduled_at`, `in_progress_at`, `completed_at`, `cancelled_at`) pada migration [`backend/database/migrations/2026_09_03_000008_create_service_logs_table.php`](backend/database/migrations/2026_09_03_000008_create_service_logs_table.php) dan model [`backend/app/Models/ServiceLog.php`](backend/app/Models/ServiceLog.php).
+  - Memperbarui [`backend/app/Http/Controllers/Api/ServiceLogController.php`](backend/app/Http/Controllers/Api/ServiceLogController.php) untuk mencatat stempel waktu setiap kali status servis bertransisi (*Terjadwal* $\rightarrow$ *Masuk Bengkel* $\rightarrow$ *Selesai / Dibatalkan*).
+  - Mengembangkan endpoint `GET /api/vehicles/{id}` pada [`backend/app/Http/Controllers/Api/VehicleController.php`](backend/app/Http/Controllers/Api/VehicleController.php) yang memuat relasi lengkap penugasan dinas (`bookings`), log pengisian bahan bakar (`fuelLogs`), dan riwayat pemeliharaan (`serviceLogs`), beserta kalkulasi statistik agregat lifetime.
+- **Frontend:**
+  - Mengembangkan fitur **Vehicle 360° Detail Modal Dialog** pada [`frontend/src/pages/Vehicles.jsx`](frontend/src/pages/Vehicles.jsx) yang dapat diakses dengan mengklik baris/nama kendaraan atau tombol **"Detail"** (`<Eye />`).
+  - Menyajikan 4 KPI Metric Card (Odometer Terkini, Total Riwayat Dinas, Total Konsumsi BBM Liter/Biaya, dan Total Akumulasi Biaya Servis).
+  - Menyajikan 4 Tab Terintegrasi:
+    1. **Tab Riwayat Dinas:** Daftar lengkap pemesanan kendaraan, pemohon, supir, rute asal $\rightarrow$ tujuan, tanggal, dan status.
+    2. **Tab Track Pengisian BBM:** Rekam jejak transaksi bahan bakar, liter, harga per liter, total biaya, odometer, dan nama supir/petugas.
+    3. **Tab Track & Lifecycle Servis:** Detail bengkel rekanan, biaya, dan **Timeline Perubahan Status** lengkap dengan tanggal & jam (*1. Terjadwal $\rightarrow$ 2. Masuk Bengkel $\rightarrow$ 3. Selesai Pengerjaan / Dibatalkan*).
+    4. **Tab Spesifikasi & Kepemilikan:** Informasi teknis unit, vendor rental, wilayah home pool, tanggal servis terakhir, dan estimasi jadwal servis berikutnya.
+- **Rencana & Dokumentasi:**
+  - Membuat rencana pada [`plans/vehicle-detail-and-lifecycle-tracking.md`](plans/vehicle-detail-and-lifecycle-tracking.md).
+  - Memperbarui dokumentasi operasional pada [`docs/panduan-penggunaan.md`](docs/panduan-penggunaan.md) dan [`docs/skema-basis-data.md`](docs/skema-basis-data.md).

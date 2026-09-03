@@ -20,6 +20,10 @@ class ServiceLog extends Model
         'next_service_date',
         'next_service_odometer',
         'status',
+        'scheduled_at',
+        'in_progress_at',
+        'completed_at',
+        'cancelled_at',
         'notes',
         'created_by_user_id',
     ];
@@ -30,6 +34,10 @@ class ServiceLog extends Model
         'cost' => 'decimal:2',
         'odometer_at_service' => 'integer',
         'next_service_odometer' => 'integer',
+        'scheduled_at' => 'datetime',
+        'in_progress_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function vehicle(): BelongsTo

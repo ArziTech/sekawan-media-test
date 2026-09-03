@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ServiceLog;
 use App\Models\Vehicle;
 use App\Services\ActivityLogger;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,7 @@ class ServiceLogController extends Controller
         $validated = $request->validate([
             'vehicle_id' => 'required|exists:vehicles,id',
             'service_date' => 'required|date',
-            'service_type' => 'required|in:routine,repair,overhaul',
+            'service_type' => 'required|in:routine,repair,inspection,overhaul',
             'cost' => 'nullable|numeric|min:0',
             'workshop_name' => 'required|string|max:255',
             'odometer_at_service' => 'required|integer|min:0',
@@ -45,6 +46,13 @@ class ServiceLogController extends Controller
             'status' => 'required|in:scheduled,in_progress,completed,cancelled',
             'notes' => 'nullable|string',
         ]);
+
+        $now = Carbon::now();
+        $status = $validated['status'];
+        $scheduledAt = $now;
+        $inProgressAt = in_array($status, ['in_progress', 'completed']) ? $now : null;
+        $completedAt = $status === 'completed' ? $now : null;
+        $cancelledAt = $status === 'cancelled' ? $now : null;
 
         $serviceLog = ServiceLog::create([
             'vehicle_id' => $validated['vehicle_id'],
@@ -55,7 +63,11 @@ class ServiceLogController extends Controller
             'odometer_at_service' => $validated['odometer_at_service'],
             'next_service_date' => $validated['next_service_date'] ?? null,
             'next_service_odometer' => $validated['next_service_odometer'] ?? null,
-            'status' => $validated['status'],
+            'status' => $status,
+            'scheduled_at' => $scheduledAt,
+            'in_progress_at' => $inProgressAt,
+            'completed_at' => $completedAt,
+            'cancelled_at' => $cancelledAt,
             'notes' => $validated['notes'] ?? null,
             'created_by_user_id' => $request->user()->id,
         ]);
@@ -118,7 +130,33 @@ class ServiceLogController extends Controller
         $oldStatus = $serviceLog->status;
         $newStatus = $validated['status'];
 
+        $now = Carbon::now();
         $updateData = ['status' => $newStatus];
+
+        if ($newStatus === 'scheduled' && !$serviceLog->scheduled_at) {
+            $updateData['scheduled_at'] = $now;
+        } elseif ($newStatus === 'in_progress') {
+            if (!$serviceLog->scheduled_at) {
+                $updateData['scheduled_at'] = $serviceLog->created_at ?? $now;
+            }
+            if (!$serviceLog->in_progress_at) {
+                $updateData['in_progress_at'] = $now;
+            }
+        } elseif ($newStatus === 'completed') {
+            if (!$serviceLog->scheduled_at) {
+                $updateData['scheduled_at'] = $serviceLog->created_at ?? $now;
+            }
+            if (!$serviceLog->in_progress_at) {
+                $updateData['in_progress_at'] = $now;
+            }
+            if (!$serviceLog->completed_at) {
+                $updateData['completed_at'] = $now;
+            }
+        } elseif ($newStatus === 'cancelled') {
+            if (!$serviceLog->cancelled_at) {
+                $updateData['cancelled_at'] = $now;
+            }
+        }
         if (isset($validated['cost'])) {
             $updateData['cost'] = $validated['cost'];
         }

@@ -24,7 +24,23 @@ Dokumen ini memuat panduan lengkap tata cara pengoperasian aplikasi web pemesana
 
 ---
 
-## 2. Tata Cara Pemesanan Kendaraan (Admin)
+## 2. Inventaris Armada & Profil Detail 360° Kendaraan
+
+1. Buka menu **Armada Kendaraan (Inventaris Armada Tambang)** pada Sidebar.
+2. **Pencarian & Multi-Filter:** Filter armada berdasarkan kata kunci model/plat nomor, klasifikasi tipe (Penumpang/Logistik), kepemilikan (Milik Sendiri/Sewa), dan status (Tersedia/Digunakan/Dalam Servis).
+3. **Membuka Detail 360° Armada:** Klik tombol **"Detail"** (ikon mata `<Eye />`) atau klik pada nama/plat kendaraan untuk membuka modal monitoring lengkap:
+   - **Kartu Ringkasan KPI:** Memantau odometer terkini, total riwayat dinas (kali), total liter & biaya konsumsi BBM, dan total akumulasi biaya servis.
+   - **Tab Dinas:** Riwayat seluruh pemesanan perjalanan dinas unit terkait (kode booking, nama pemohon, supir, rute asal $\rightarrow$ tujuan, tanggal, dan status).
+   - **Tab BBM:** Rekam jejak seluruh pengisian bahan bakar (tanggal, volume liter, harga per liter, total biaya, odometer pengisian, dan nama supir).
+   - **Tab Servis & Lifecycle Timeline:** Pelacakan komprehensif riwayat servis dengan penanda waktu multi-fase perubahan status:
+     - 📅 **Terjadwal:** Tanggal & jam pencatatan agenda servis.
+     - 🔧 **Masuk Bengkel:** Tanggal & jam armada mulai masuk pengerjaan di bengkel rekanan.
+     - ✅ **Selesai Pengerjaan:** Tanggal & jam pekerjaan mekanik selesai dan armada kembali siap operasi.
+     - ❌ **Dibatalkan:** Tanggal & jam pembatalan agenda servis (jika ada).
+   - **Tab Spesifikasi:** Informasi rincian teknis aset, data vendor rental (bila sewa), home pool wilayah, servis terakhir, dan estimasi target servis berikutnya.
+
+
+## 3. Tata Cara Pemesanan Kendaraan (Admin)
 
 1. Buka menu **Pemesanan Kendaraan** pada Sidebar.
 2. Klik tombol **"Buat Pemesanan Baru"**.
@@ -40,24 +56,24 @@ Dokumen ini memuat panduan lengkap tata cara pengoperasian aplikasi web pemesana
 
 ---
 
-## 3. Tata Cara Melakukan Persetujuan (Approver)
+## 4. Tata Cara Melakukan Persetujuan (Approver)
 
 1. Masuk sebagai akun **Approver Level 1** atau **Approver Level 2**.
 2. Buka menu **Portal Persetujuan**.
-3. Pada tab **"Menunggu Tindakan"**, klik tombol **"Setujui (Approve)"** atau **"Tolak (Reject)"** pada kartu pemesanan.
-4. Masukkan catatan atau alasan penolakan pada modal konfirmasi, lalu klik tombol konfirmasi.
-5. Pemesanan yang disetujui Level 1 akan otomatis masuk ke antrean Level 2. Pemesanan yang disetujui Level 2 akan berstatus `approved` dan siap diberangkatkan.
+3. Pada tab **"Menunggu Keputusan"**, klik tombol **"Setujui"** atau **"Tolak"** pada kartu permohonan.
+4. Masukkan catatan otorisasi atau alasan penolakan pada modal konfirmasi, lalu klik tombol konfirmasi.
+5. Permohonan yang disetujui Level 1 akan otomatis naik statusnya ke Level 2. Permohonan yang disetujui Level 2 akan berstatus `approved` dan siap diberangkatkan.
 
 ---
 
-## 4. Eksekusi Perjalanan & Penyelesaian
+## 5. Eksekusi Perjalanan & Penyelesaian
 
 1. **Mulai Perjalanan:** Admin membuka detail pemesanan berstatus `approved`, lalu mengklik **"Mulai Perjalanan"** $\rightarrow$ Status berubah menjadi `in_use`, mobil dan supir ditandai sedang bertugas.
-2. **Selesai Perjalanan:** Setelah mobil kembali, Admin mengklik **"Selesaikan Perjalanan"** $\rightarrow$ Masukkan angka odometer akhir $\rightarrow$ Status berubah menjadi `completed`, mobil dan supir kembali berstatus `available`.
+2. **Selesai Perjalanan:** Setelah mobil kembali, Admin mengklik **"Selesaikan Perjalanan"** $\rightarrow$ Masukkan angka odometer akhir dan opsi integrasi log BBM $\rightarrow$ Status berubah menjadi `completed`, mobil dan supir kembali berstatus `available`.
 
 ---
 
-## 5. Monitoring BBM, Jadwal Servis & Ekspor Excel
+## 6. Monitoring BBM, Jadwal Servis & Ekspor Excel
 
 1. **Konsumsi BBM:** Buka menu **Konsumsi BBM** $\rightarrow$ Klik **"Catat Pengisian BBM"** untuk mencatat liter, harga, total biaya, dan odometer.
 2. **Jadwal & Riwayat Servis:** Buka menu **Jadwal & Riwayat Servis** untuk memantau pemeliharaan rutin, perbaikan kendala teknis, dan jadwal servis berkala:

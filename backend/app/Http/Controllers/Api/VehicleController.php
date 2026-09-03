@@ -99,14 +99,28 @@ class VehicleController extends Controller
         $vehicle = Vehicle::with([
             'region',
             'rentalCompany',
-            'bookings' => fn($q) => $q->latest()->limit(10),
-            'fuelLogs' => fn($q) => $q->latest()->limit(10),
-            'serviceLogs' => fn($q) => $q->latest()->limit(10),
+            'bookings' => fn($q) => $q->with(['originRegion', 'destinationRegion', 'driver', 'createdBy'])->latest(),
+            'fuelLogs' => fn($q) => $q->with(['driver', 'createdBy'])->latest('fuel_date'),
+            'serviceLogs' => fn($q) => $q->with('createdBy')->latest('service_date'),
         ])->findOrFail($id);
+
+        $stats = [
+            'total_trips' => $vehicle->bookings->count(),
+            'completed_trips' => $vehicle->bookings->where('status', 'completed')->count(),
+            'active_trips' => $vehicle->bookings->where('status', 'in_use')->count(),
+            'total_fuel_liters' => (float) $vehicle->fuelLogs->sum('liters'),
+            'total_fuel_cost' => (float) $vehicle->fuelLogs->sum('cost'),
+            'total_service_cost' => (float) $vehicle->serviceLogs->where('status', 'completed')->sum('cost'),
+            'completed_services' => $vehicle->serviceLogs->where('status', 'completed')->count(),
+            'active_services' => $vehicle->serviceLogs->where('status', 'in_progress')->count(),
+            'scheduled_services' => $vehicle->serviceLogs->where('status', 'scheduled')->count(),
+        ];
 
         return response()->json([
             'success' => true,
-            'data' => $vehicle,
+            'data' => array_merge($vehicle->toArray(), [
+                'stats' => $stats,
+            ]),
         ]);
     }
 
