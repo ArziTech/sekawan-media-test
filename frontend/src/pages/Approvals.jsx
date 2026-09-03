@@ -263,7 +263,7 @@ export const Approvals = () => {
                         {currentLevel === 2 && l1 && (
                           <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px]">
                             <p className="font-bold text-emerald-500">
-                              Catatan Level 1 ({l1.approver?.name}):
+                              Catatan Penyetujui Level 1 (Supervisor):
                             </p>
                             <p className="text-foreground mt-0.5">"{l1.notes || 'Disetujui'}"</p>
                           </div>
@@ -278,7 +278,7 @@ export const Approvals = () => {
                           <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 self-start sm:self-auto">
                             <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                             <span>
-                              Menunggu persetujuan: <strong className="text-foreground">{activeApprover?.name || `Penyetujui Level ${currentLevel}`}</strong>
+                              Menunggu persetujuan: <strong className="text-foreground">{currentLevel === 1 ? 'Penyetujui Level 1 (Supervisor Operasional)' : 'Penyetujui Level 2 (Kepala Pool / GM)'}</strong>
                             </span>
                           </div>
                           <Button
