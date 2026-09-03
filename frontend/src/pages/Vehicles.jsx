@@ -773,52 +773,68 @@ export const Vehicles = () => {
 
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                                 {/* Step 1: Terjadwal */}
-                                <div className="p-2 rounded-lg bg-background/80 border border-border/60">
+                                <div className="p-2.5 rounded-lg bg-background/80 border border-border/60">
                                   <div className="flex items-center gap-1.5 text-amber-400 font-semibold text-[11px]">
                                     <Clock className="w-3.5 h-3.5" />
                                     <span>1. Terjadwal</span>
                                   </div>
                                   <p className="font-mono text-[10px] text-foreground mt-1">
-                                    {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString('id-ID') : new Date(s.service_date).toLocaleDateString('id-ID')}
+                                    {s.scheduled_at
+                                      ? new Date(s.scheduled_at).toLocaleString('id-ID')
+                                      : new Date(s.service_date).toLocaleDateString('id-ID')}
                                   </p>
                                 </div>
 
                                 {/* Step 2: Masuk Bengkel */}
                                 <div className={cn(
-                                  "p-2 rounded-lg border",
-                                  s.in_progress_at ? "bg-background/80 border-border/60" : "bg-muted/20 border-dashed border-border/40 text-muted-foreground"
+                                  "p-2.5 rounded-lg border",
+                                  (s.in_progress_at || s.status === 'in_progress' || s.status === 'completed')
+                                    ? "bg-background/80 border-border/60"
+                                    : "bg-muted/20 border-dashed border-border/40 text-muted-foreground"
                                 )}>
                                   <div className="flex items-center gap-1.5 text-blue-400 font-semibold text-[11px]">
                                     <Wrench className="w-3.5 h-3.5" />
                                     <span>2. Masuk Bengkel</span>
                                   </div>
                                   <p className="font-mono text-[10px] text-foreground mt-1">
-                                    {s.in_progress_at ? new Date(s.in_progress_at).toLocaleString('id-ID') : (s.status === 'completed' ? 'Tercatat Selesai' : 'Menunggu antrean')}
+                                    {s.in_progress_at
+                                      ? new Date(s.in_progress_at).toLocaleString('id-ID')
+                                      : (s.status === 'completed' || s.status === 'in_progress')
+                                      ? new Date(s.service_date).toLocaleDateString('id-ID')
+                                      : <span className="text-muted-foreground italic font-sans">Menunggu antrean</span>}
                                   </p>
                                 </div>
 
                                 {/* Step 3: Selesai / Dibatalkan */}
                                 {s.status === 'cancelled' ? (
-                                  <div className="p-2 rounded-lg bg-background/80 border border-rose-500/30">
+                                  <div className="p-2.5 rounded-lg bg-background/80 border border-rose-500/30">
                                     <div className="flex items-center gap-1.5 text-rose-400 font-semibold text-[11px]">
                                       <XCircle className="w-3.5 h-3.5" />
                                       <span>3. Dibatalkan</span>
                                     </div>
                                     <p className="font-mono text-[10px] text-rose-400 mt-1">
-                                      {s.cancelled_at ? new Date(s.cancelled_at).toLocaleString('id-ID') : 'Dibatalkan'}
+                                      {s.cancelled_at
+                                        ? new Date(s.cancelled_at).toLocaleString('id-ID')
+                                        : new Date(s.updated_at || s.service_date).toLocaleDateString('id-ID')}
                                     </p>
                                   </div>
                                 ) : (
                                   <div className={cn(
-                                    "p-2 rounded-lg border",
-                                    s.completed_at ? "bg-background/80 border-border/60" : "bg-muted/20 border-dashed border-border/40 text-muted-foreground"
+                                    "p-2.5 rounded-lg border",
+                                    (s.completed_at || s.status === 'completed')
+                                      ? "bg-background/80 border-border/60"
+                                      : "bg-muted/20 border-dashed border-border/40 text-muted-foreground"
                                   )}>
                                     <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px]">
                                       <CheckCircle className="w-3.5 h-3.5" />
                                       <span>3. Selesai Pengerjaan</span>
                                     </div>
                                     <p className="font-mono text-[10px] text-foreground mt-1">
-                                      {s.completed_at ? new Date(s.completed_at).toLocaleString('id-ID') : 'Dalam pengerjaan'}
+                                      {s.completed_at
+                                        ? new Date(s.completed_at).toLocaleString('id-ID')
+                                        : s.status === 'completed'
+                                        ? new Date(s.service_date).toLocaleDateString('id-ID')
+                                        : <span className="text-blue-400 font-medium italic font-sans">Sedang dikerjakan</span>}
                                     </p>
                                   </div>
                                 )}

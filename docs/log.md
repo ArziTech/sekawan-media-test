@@ -493,3 +493,21 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - Menambahkan file migration [`backend/database/migrations/2026_09_03_000010_add_timestamps_and_cancelled_to_service_logs_table.php`](backend/database/migrations/2026_09_03_000010_add_timestamps_and_cancelled_to_service_logs_table.php).
 - Menjalankan `php artisan migrate` pada container `sekawan_app` untuk menambahkan kolom `scheduled_at`, `in_progress_at`, `completed_at`, dan `cancelled_at` serta memperluas enum status MySQL dengan nilai `'cancelled'`.
 - Menyelesaikan error `SQLSTATE[42S22]: Unknown column 'cancelled_at' in 'field list'` saat pembaruan status servis.
+
+## [2026-09-03] feat | Penambahan Bagian Profil Pengembang & Portofolio (Tentang Saya) pada Landing Page
+
+- Mengekstrak data riwayat profesional, pendidikan, dan proyek dari CV ([`Gunawan - Full Stack Developer - Bahasa Indonesia.pdf`](/home/wawan/Downloads/Gunawan%20-%20Full%20Stack%20Developer%20-%20Bahasa%20Indonesia.pdf)) dan website portofolio resmi ([`https://gunawan05.pro`](https://gunawan05.pro)).
+- Membuat bagian baru **"Tentang Gunawan &middot; Full Stack Developer"** (`#about`) pada [`frontend/src/pages/LandingPage.jsx`](frontend/src/pages/LandingPage.jsx):
+  - **Kartu Profil Utama:** Informasi pendidikan S1 Teknik Komputer Universitas Brawijaya (IPK 3.36/4.00), domisili Malang, status ketersediaan kesempatan kerja, tombol CTA utama ke [`https://gunawan05.pro`](https://gunawan05.pro), dan tombol kontak langsung (GitHub, LinkedIn, Email).
+  - **Portofolio Proyek Pilihan:** Showcase produk Rasava AI (`rasavaai.id`), db-stock (`db-stock-landing.vercel.app`), Financial Plan App (`financial-plan-app.vercel.app`), dan Nickel Fleet Management.
+  - **Riwayat Pengalaman Profesional:** Tim lead website Digital Creative Masjid Raden Patah, IoT Engineer BRMP Jestro, dan Project-Based Internship Luarsekolah.
+- Menambahkan tautan menu **"Tentang Saya"** pada navbar header.
+- Menautkan profil pengembang pada footer ke website portofolio [`https://gunawan05.pro`](https://gunawan05.pro).
+- Memperbarui dokumentasi di [`docs/landing-page-dan-presentasi.md`](docs/landing-page-dan-presentasi.md).
+- Build frontend dan linter lulus 100% tanpa galat.
+
+
+## [2026-09-03] fix | Perbaikan Tampilan Tanggal Transisi Status Masuk Bengkel & Selesai pada Modal Detail Armada
+
+- Memperbarui komponen Timeline Rekam Jejak Servis pada [`frontend/src/pages/Vehicles.jsx`](frontend/src/pages/Vehicles.jsx) agar menampilkan tanggal & waktu riil untuk tahap **"2. Masuk Bengkel"** dan **"3. Selesai Pengerjaan"** (dengan fallback tanggal servis untuk entri data yang sudah `completed` atau `in_progress`).
+- Menjalankan migrasi backfill pada database MySQL untuk memastikan seluruh catatan servis eksisting memiliki nilai stempel waktu `in_progress_at` dan `completed_at`.
