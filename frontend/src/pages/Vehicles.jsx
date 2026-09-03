@@ -680,7 +680,7 @@ export const Vehicles = () => {
                             (detailVehicle.fuel_logs || detailVehicle.fuelLogs || []).map((f) => (
                               <TableRow key={f.id} className="hover:bg-muted/30">
                                 <TableCell className="py-2.5 px-3 font-medium">
-                                  {new Date(f.fuel_date).toLocaleDateString('id-ID')}
+                                  {new Date(f.log_date || f.fuel_date).toLocaleDateString('id-ID')}
                                 </TableCell>
                                 <TableCell className="py-2.5 px-3">
                                   <Badge variant="outline" className="text-[10px]">
@@ -694,13 +694,13 @@ export const Vehicles = () => {
                                   Rp {Number(f.cost_per_liter || 0).toLocaleString('id-ID')}
                                 </TableCell>
                                 <TableCell className="py-2.5 px-3 font-bold text-amber-500 font-mono">
-                                  Rp {Number(f.cost).toLocaleString('id-ID')}
+                                  Rp {Number(f.total_cost || f.cost || 0).toLocaleString('id-ID')}
                                 </TableCell>
                                 <TableCell className="py-2.5 px-3 font-mono text-muted-foreground">
-                                  {f.odometer_at_fill ? `${Number(f.odometer_at_fill).toLocaleString('id-ID')} km` : '-'}
+                                  {(f.odometer_reading || f.odometer_at_fill) ? `${Number(f.odometer_reading || f.odometer_at_fill).toLocaleString('id-ID')} km` : '-'}
                                 </TableCell>
                                 <TableCell className="py-2.5 px-3 text-muted-foreground">
-                                  {f.driver?.name || f.created_by?.name || '-'}
+                                  {f.booking?.driver?.name || f.driver?.name || f.created_by?.name || f.createdBy?.name || '-'}
                                 </TableCell>
                               </TableRow>
                             ))

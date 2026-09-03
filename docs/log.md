@@ -476,3 +476,14 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
 - **Rencana & Dokumentasi:**
   - Membuat rencana pada [`plans/vehicle-detail-and-lifecycle-tracking.md`](plans/vehicle-detail-and-lifecycle-tracking.md).
   - Memperbarui dokumentasi operasional pada [`docs/panduan-penggunaan.md`](docs/panduan-penggunaan.md) dan [`docs/skema-basis-data.md`](docs/skema-basis-data.md).
+
+## [2026-09-03] ingest | Rencana Pembatasan Otoritas Peran Approver (Hanya /approvals & Riwayat Sendiri)
+
+- **Dokumen Dibuat:**
+  - `plans/pembatasan-otoritas-approver.md`: Rencana implementasi pembatasan otoritas peran Approver agar hanya dapat mengakses halaman `/approvals` dan hanya dapat melihat riwayat tindakan persetujuan miliknya sendiri pada tab "Riwayat Persetujuan".
+- **Tujuan / Konteks:** Membatasi peran Approver (Level 1 & Level 2) dari akses dashboard, pemesanan, monitoring personil, manajemen armada, dan laporan, serta mengisolasi data riwayat persetujuan per user approver.
+
+## [2026-09-03] fix | Perbaikan Kolom Query Relasi Fuel Logs pada Detail Kendaraan
+
+- Memperbaiki query relasi eager loading `fuelLogs` pada [`backend/app/Http/Controllers/Api/VehicleController.php`](backend/app/Http/Controllers/Api/VehicleController.php) dari `latest('fuel_date')` menjadi `latest('log_date')` dan `sum('cost')` menjadi `sum('total_cost')` sesuai skema tabel `fuel_logs`.
+- Memperbaiki mapping data bahan bakar pada modal detail [`frontend/src/pages/Vehicles.jsx`](frontend/src/pages/Vehicles.jsx) untuk menyelesaikan HTTP 500 error saat mengakses `GET /api/vehicles/{id}`.

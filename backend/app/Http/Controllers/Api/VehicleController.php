@@ -100,7 +100,7 @@ class VehicleController extends Controller
             'region',
             'rentalCompany',
             'bookings' => fn($q) => $q->with(['originRegion', 'destinationRegion', 'driver', 'createdBy'])->latest(),
-            'fuelLogs' => fn($q) => $q->with(['driver', 'createdBy'])->latest('fuel_date'),
+            'fuelLogs' => fn($q) => $q->with(['booking.driver', 'createdBy'])->latest('log_date'),
             'serviceLogs' => fn($q) => $q->with('createdBy')->latest('service_date'),
         ])->findOrFail($id);
 
@@ -109,7 +109,7 @@ class VehicleController extends Controller
             'completed_trips' => $vehicle->bookings->where('status', 'completed')->count(),
             'active_trips' => $vehicle->bookings->where('status', 'in_use')->count(),
             'total_fuel_liters' => (float) $vehicle->fuelLogs->sum('liters'),
-            'total_fuel_cost' => (float) $vehicle->fuelLogs->sum('cost'),
+            'total_fuel_cost' => (float) $vehicle->fuelLogs->sum('total_cost'),
             'total_service_cost' => (float) $vehicle->serviceLogs->where('status', 'completed')->sum('cost'),
             'completed_services' => $vehicle->serviceLogs->where('status', 'completed')->count(),
             'active_services' => $vehicle->serviceLogs->where('status', 'in_progress')->count(),
