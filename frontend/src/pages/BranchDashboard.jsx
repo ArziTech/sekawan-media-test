@@ -153,11 +153,13 @@ export function BranchDashboard() {
     },
   };
 
+  const currentMonthLabel = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
+
   const fuelCostChartData = {
     labels: overviewData?.comparison_chart?.labels?.map(l => l.replace('Tambang ', 'Tmb. ').replace('Kantor ', 'Kntr. ')) || [],
     datasets: [
       {
-        label: 'Beban BBM Bulan Ini (Juta Rp)',
+        label: `Beban Biaya BBM ${currentMonthLabel} (Juta Rp)`,
         data: overviewData?.comparison_chart?.fuel_cost_millions || [],
         backgroundColor: '#10b981',
         borderRadius: 6,
@@ -169,7 +171,7 @@ export function BranchDashboard() {
     <Card
       key={reg.id}
       className={cn(
-        "border-border/80 shadow-xs transition-all",
+        "border-border/80 shadow-xs transition-all flex flex-col justify-between",
         accentClass
       )}
     >
@@ -184,7 +186,7 @@ export function BranchDashboard() {
           {getRegionTypeBadge(reg.type)}
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-2 space-y-3">
+      <CardContent className="p-4 pt-2 space-y-2.5">
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="p-2 rounded-lg bg-muted/40 border border-border/50">
             <span className="text-[10px] text-muted-foreground block">Armada Pool</span>
@@ -200,14 +202,24 @@ export function BranchDashboard() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-[11px] border-t border-border/50 pt-2 text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Navigation className="w-3 h-3 text-amber-500" />
-            {reg.trips.active_outgoing} Trip Aktif
-          </span>
-          <span className="font-semibold text-emerald-500">
-            {formatRupiah(reg.fuel.monthly_cost)}
-          </span>
+        {/* Biaya BBM & Arus Trip Terstruktur dan Jelas */}
+        <div className="p-2.5 rounded-lg bg-muted/30 border border-border/60 space-y-1.5 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <Fuel className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              Biaya BBM ({currentMonthLabel}):
+            </span>
+            <span className="font-bold text-emerald-500 text-xs">
+              {formatRupiah(reg.fuel.monthly_cost)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+            <span className="flex items-center gap-1">
+              <Navigation className="w-3 h-3 text-amber-500 shrink-0" />
+              Trip Sedang Berjalan:
+            </span>
+            <span className="font-semibold text-foreground">{reg.trips.active_outgoing} Trip</span>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -373,7 +385,10 @@ export function BranchDashboard() {
                     <th className="py-3 px-4">Armada (Siap / Total)</th>
                     <th className="py-3 px-4">Supir (Siap / Total)</th>
                     <th className="py-3 px-4">Trip Keluar / Masuk</th>
-                    <th className="py-3 px-4">Beban BBM Bulan Ini</th>
+                    <th className="py-3 px-4">
+                      <div>Biaya BBM</div>
+                      <div className="text-[9px] font-normal normal-case tracking-normal text-muted-foreground">({currentMonthLabel})</div>
+                    </th>
                     <th className="py-3 px-4 text-right">Status Pool</th>
                   </tr>
                 </thead>

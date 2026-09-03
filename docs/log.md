@@ -294,3 +294,10 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   - Menolak akses detail pemesanan di luar wilayah cabang tugas approver dengan `403 Forbidden`.
 - Memperbarui antarmuka [`frontend/src/pages/Bookings.jsx`](frontend/src/pages/Bookings.jsx) untuk menampilkan badge wilayah penugasan approver pada header halaman.
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Kejelasan Label dan Periode Waktu Biaya BBM pada Dashboard Cabang
+
+- Memperbarui kartu wilayah dan grafik pada [`frontend/src/pages/BranchDashboard.jsx`](frontend/src/pages/BranchDashboard.jsx):
+  - Mengubah tampilan angka Rupiah yang ambigu menjadi kotak metrik berlabel jelas: `Biaya BBM (September 2026): Rp X.XXX.XXX` disertai ikon BBM `Fuel`.
+  - Menampilkan periode waktu dinamis bulan berjalan (`currentMonthLabel`) baik pada kartu wilayah, grafik batang distribusi pengeluaran, maupun header tabel rekapitulasi 8 wilayah.
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
