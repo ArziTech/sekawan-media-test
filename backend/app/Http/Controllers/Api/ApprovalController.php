@@ -93,6 +93,13 @@ class ApprovalController extends Controller
         $user = $request->user();
         $booking = Booking::with(['approvals', 'vehicle', 'driver'])->findOrFail($bookingId);
 
+        if ($user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Admin tidak memiliki otorisasi untuk menyetujui atau menolak pemesanan. Admin hanya dapat membatalkan pemesanan.',
+            ], 403);
+        }
+
         if (in_array($booking->status, ['approved', 'completed', 'rejected', 'cancelled', 'in_use'])) {
             return response()->json([
                 'success' => false,
@@ -104,7 +111,7 @@ class ApprovalController extends Controller
         $targetApproval = null;
         if ($booking->status === 'pending_level_1') {
             $targetApproval = $booking->approvals->where('approval_level', 1)->first();
-            if (!$user->isAdmin() && $targetApproval->approver_user_id !== $user->id) {
+            if ($targetApproval->approver_user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki hak untuk menyetujui pemesanan ini pada Level 1.',
@@ -120,7 +127,7 @@ class ApprovalController extends Controller
             }
 
             $targetApproval = $booking->approvals->where('approval_level', 2)->first();
-            if (!$user->isAdmin() && $targetApproval->approver_user_id !== $user->id) {
+            if ($targetApproval->approver_user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki hak untuk menyetujui pemesanan ini pada Level 2.',

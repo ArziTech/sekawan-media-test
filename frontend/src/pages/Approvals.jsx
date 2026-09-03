@@ -11,6 +11,8 @@ import {
   MapPin,
   Calendar,
   AlertCircle,
+  Ban,
+  AlertTriangle,
 } from 'lucide-react';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
@@ -39,7 +41,7 @@ import {
 import { BookingStatusBadge } from '@/components/common/StatusBadge';
 
 export const Approvals = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const toast = useToast();
 
   const [activeTab, setActiveTab] = useState('pending');
@@ -47,12 +49,17 @@ export const Approvals = () => {
   const [historyList, setHistoryList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Action Dialog State
+  // Approve/Reject Action Dialog State (Approver Only)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [actionType, setActionType] = useState('approve');
   const [notes, setNotes] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  // Cancel Booking Dialog State (Admin Only)
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [selectedCancelBooking, setSelectedCancelBooking] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
 
   const fetchPending = async () => {
     setLoading(true);
@@ -125,6 +132,28 @@ export const Approvals = () => {
     }
   };
 
+  const handleOpenCancelModal = (booking) => {
+    setSelectedCancelBooking(booking);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!selectedCancelBooking) return;
+    setCancelling(true);
+    try {
+      const res = await api.post(`/bookings/${selectedCancelBooking.id}/cancel`);
+      if (res.data.success) {
+        toast.success('Pemesanan berhasil dibatalkan.');
+        setIsCancelModalOpen(false);
+        fetchPending();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal membatalkan pemesanan.');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -135,7 +164,9 @@ export const Approvals = () => {
             Portal Persetujuan Berjenjang
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Otorisasi berjenjang Level 1 (Supervisor) & Level 2 (Kepala Pool / GM).
+            {isAdmin
+              ? 'Monitoring antrean persetujuan Level 1 & Level 2 dan pembatalan pemesanan oleh Admin.'
+              : 'Otorisasi persetujuan berjenjang Level 1 (Supervisor) & Level 2 (Kepala Pool / GM).'}
           </p>
         </div>
 
@@ -166,7 +197,7 @@ export const Approvals = () => {
                 <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
                 <h3 className="text-sm font-bold text-foreground">Semua Persetujuan Selesai</h3>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  Tidak ada pemesanan kendaraan yang sedang menunggu persetujuan Anda saat ini.
+                  Tidak ada pemesanan kendaraan yang sedang menunggu tindakan saat ini.
                 </p>
               </CardContent>
             </Card>
@@ -174,7 +205,9 @@ export const Approvals = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pendingList.map((b) => {
                 const l1 = b.approvals?.find((a) => a.approval_level === 1);
+                const l2 = b.approvals?.find((a) => a.approval_level === 2);
                 const currentLevel = b.status === 'pending_level_1' ? 1 : 2;
+                const activeApprover = currentLevel === 1 ? l1?.approver : l2?.approver;
 
                 return (
                   <Card key={b.id} className="flex flex-col justify-between overflow-hidden relative">
@@ -238,25 +271,49 @@ export const Approvals = () => {
                       </div>
                     </CardContent>
 
-                    <div className="p-4 pt-3 flex items-center gap-2.5 border-t border-border/80">
-                      <Button
-                        onClick={() => handleOpenActionModal(b, 'approve')}
-                        variant="emerald"
-                        size="sm"
-                        className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        Setujui (Approve)
-                      </Button>
-                      <Button
-                        onClick={() => handleOpenActionModal(b, 'reject')}
-                        variant="destructive"
-                        size="sm"
-                        className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        Tolak (Reject)
-                      </Button>
+                    <div className="p-4 pt-3 border-t border-border/80">
+                      {isAdmin ? (
+                        /* Admin View: Cannot Approve/Reject, only Cancel Booking */
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 self-start sm:self-auto">
+                            <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <span>
+                              Menunggu persetujuan: <strong className="text-foreground">{activeApprover?.name || `Penyetujui Level ${currentLevel}`}</strong>
+                            </span>
+                          </div>
+                          <Button
+                            onClick={() => handleOpenCancelModal(b)}
+                            variant="destructive"
+                            size="sm"
+                            className="w-full sm:w-auto font-bold text-xs gap-1.5 h-8.5 shadow-xs"
+                          >
+                            <Ban className="w-3.5 h-3.5" />
+                            Batalkan Pemesanan
+                          </Button>
+                        </div>
+                      ) : (
+                        /* Approver View: Approve or Reject buttons */
+                        <div className="flex items-center gap-2.5">
+                          <Button
+                            onClick={() => handleOpenActionModal(b, 'approve')}
+                            variant="emerald"
+                            size="sm"
+                            className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            Setujui (Approve)
+                          </Button>
+                          <Button
+                            onClick={() => handleOpenActionModal(b, 'reject')}
+                            variant="destructive"
+                            size="sm"
+                            className="flex-1 font-bold text-xs gap-1.5 h-9 shadow-xs"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Tolak (Reject)
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </Card>
                 );
@@ -333,7 +390,7 @@ export const Approvals = () => {
         </Card>
       )}
 
-      {/* Dialog: Proses Persetujuan */}
+      {/* Dialog: Proses Persetujuan (Approvers Only) */}
       <Dialog open={isActionModalOpen} onOpenChange={setIsActionModalOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -383,6 +440,48 @@ export const Approvals = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Batalkan Pemesanan (Admin Only) */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-500">
+              <AlertTriangle className="w-5 h-5" />
+              Batalkan Pemesanan Kendaraan
+            </DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin membatalkan pemesanan <strong>{selectedCancelBooking?.booking_code}</strong> atas nama <strong>{selectedCancelBooking?.requester_name}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs space-y-1 text-rose-400">
+            <p className="font-bold">Perhatian:</p>
+            <p>Pemesanan yang dibatalkan tidak dapat diproses kembali dan status armada/supir akan dipulihkan menjadi Tersedia.</p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCancelModalOpen(false)}
+            >
+              Kembali
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={cancelling}
+              onClick={handleConfirmCancel}
+              className="font-bold text-xs gap-1.5"
+            >
+              <Ban className="w-3.5 h-3.5" />
+              {cancelling ? 'Membatalkan...' : 'Ya, Batalkan Pemesanan'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -250,3 +250,12 @@ Log kronologis append-only perubahan dokumentasi wiki di `docs/`.
   3. **Section Wilayah Site Tambang Nikel:** 6 site ekstraksi aktif dengan aksen emerald.
 - Memperbarui dokumentasi di [`docs/dashboard-kantor-cabang.md`](docs/dashboard-kantor-cabang.md).
 - Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
+
+## [2026-09-03] fix | Penegasan Otorisasi Persetujuan (Admin Hanya Dapat Membatalkan Pemesanan)
+
+- Mengunci endpoint backend [`backend/app/Http/Controllers/Api/ApprovalController.php`](backend/app/Http/Controllers/Api/ApprovalController.php) sehingga pengguna dengan peran `admin` ditolak dengan `403 Forbidden` jika mencoba mengeksekusi aksi persetujuan atau penolakan.
+- Memperbarui antarmuka [`frontend/src/pages/Approvals.jsx`](frontend/src/pages/Approvals.jsx):
+  - Saat login sebagai **Admin**, tombol *Setujui (Approve)* dan *Tolak (Reject)* dihilangkan dan digantikan dengan informasi nama approver yang ditugaskan serta tombol **"Batalkan Pemesanan"** (dengan modal konfirmasi).
+  - Tombol *Setujui (Approve)* dan *Tolak (Reject)* hanya aktif bagi akun **Approver Level 1** (`approver1@tambang.com`) atau **Approver Level 2** (`approver2@tambang.com`) sesuai tahapan persetujuan.
+- Memperbarui dokumentasi di [`docs/alur-persetujuan-berjenjang.md`](docs/alur-persetujuan-berjenjang.md).
+- Kompilasi build frontend sukses dan seluruh pembaruan telah di-push ke branch `main`.
