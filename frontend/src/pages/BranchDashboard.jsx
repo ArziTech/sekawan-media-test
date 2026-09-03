@@ -251,10 +251,10 @@ export function BranchDashboard() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={refreshing || loading}
+            disabled={isRefetching || loading}
             className="text-xs gap-1.5 h-9"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", (refreshing || loading) && "animate-spin")} />
+            <RefreshCw className={cn("w-3.5 h-3.5", (isRefetching || loading) && "animate-spin")} />
             <span>Segarkan</span>
           </Button>
         </div>
